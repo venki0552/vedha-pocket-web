@@ -6,7 +6,8 @@ export type UUID = string;
 export interface Org {
   id: UUID;
   name: string;
-  created_by: UUID;
+  slug: string | null;
+  owner_id: UUID;
   created_at: string;
 }
 
@@ -25,8 +26,10 @@ export interface Pocket {
   id: UUID;
   org_id: UUID;
   name: string;
+  description: string | null;
   created_by: UUID;
   created_at: string;
+  updated_at: string;
 }
 
 export type PocketRole = 'owner' | 'member' | 'client';
@@ -80,8 +83,10 @@ export interface Conversation {
   id: UUID;
   org_id: UUID;
   pocket_id: UUID;
+  title: string | null;
   created_by: UUID;
   created_at: string;
+  updated_at: string;
 }
 
 export type MessageRole = 'user' | 'assistant';

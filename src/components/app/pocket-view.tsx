@@ -50,14 +50,15 @@ import {
 
 interface Source {
 	id: string;
-	type: "url" | "file";
+	type: "pdf" | "txt" | "docx" | "url";
 	title: string;
 	url: string | null;
-	file_name: string | null;
-	file_size: number | null;
-	status: "pending" | "processing" | "completed" | "failed";
+	storage_path: string | null;
+	size_bytes: number;
+	status: "queued" | "extracting" | "chunking" | "embedding" | "ready" | "failed";
 	error_message: string | null;
 	created_at: string;
+	updated_at: string;
 }
 
 interface Conversation {
@@ -239,11 +240,13 @@ export function PocketView({
 
 	const getStatusBadge = (status: Source["status"]) => {
 		switch (status) {
-			case "completed":
+			case "ready":
 				return <Badge variant='default'>Ready</Badge>;
-			case "processing":
+			case "extracting":
+			case "chunking":
+			case "embedding":
 				return <Badge variant='secondary'>Processing</Badge>;
-			case "pending":
+			case "queued":
 				return <Badge variant='outline'>Pending</Badge>;
 			case "failed":
 				return <Badge variant='destructive'>Failed</Badge>;
@@ -470,7 +473,7 @@ export function PocketView({
 									rows={1}
 									disabled={
 										isStreaming ||
-										sources.filter((s) => s.status === "completed").length === 0
+										sources.filter((s) => s.status === "ready").length === 0
 									}
 								/>
 								<Button
@@ -478,13 +481,13 @@ export function PocketView({
 									disabled={
 										!inputMessage.trim() ||
 										isStreaming ||
-										sources.filter((s) => s.status === "completed").length === 0
+										sources.filter((s) => s.status === "ready").length === 0
 									}
 								>
 									<Send className='h-4 w-4' />
 								</Button>
 							</div>
-							{sources.filter((s) => s.status === "completed").length === 0 && (
+							{sources.filter((s) => s.status === "ready").length === 0 && (
 								<p className='mt-2 text-xs text-muted-foreground'>
 									Add and process some sources before asking questions.
 								</p>
@@ -517,7 +520,7 @@ export function PocketView({
 													)}
 													<div>
 														<p className='font-medium'>
-															{source.title || source.file_name || source.url}
+															{source.title || source.url}
 														</p>
 														<div className='flex items-center gap-2 text-sm text-muted-foreground'>
 															{source.type === "url" && source.url && (
@@ -531,8 +534,8 @@ export function PocketView({
 																	Open
 																</a>
 															)}
-															{source.type === "file" && source.file_size && (
-																<span>{formatFileSize(source.file_size)}</span>
+															{source.type !== "url" && source.size_bytes > 0 && (
+																<span>{formatFileSize(source.size_bytes)}</span>
 															)}
 														</div>
 														{source.status === "failed" &&

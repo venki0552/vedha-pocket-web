@@ -59,12 +59,12 @@ async function PocketListWrapper() {
 	const pocketIds = pockets?.map((p) => p.id) || [];
 	const { data: pocketMembers } = await supabase
 		.from("pocket_members")
-		.select("pocket_id, can_edit")
+		.select("pocket_id, role")
 		.eq("user_id", user.id)
 		.in("pocket_id", pocketIds);
 
 	const pocketMemberMap = new Map(
-		pocketMembers?.map((pm) => [pm.pocket_id, pm.can_edit]) || []
+		pocketMembers?.map((pm) => [pm.pocket_id, pm.role === 'owner' || pm.role === 'member']) || []
 	);
 
 	const pocketsWithAccess =

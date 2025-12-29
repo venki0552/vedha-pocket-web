@@ -57,7 +57,7 @@ export default async function PocketPage({ params }: PocketPageProps) {
 		.from("conversations")
 		.select("*")
 		.eq("pocket_id", pocket.id)
-		.eq("user_id", user.id)
+		.eq("created_by", user.id)
 		.order("updated_at", { ascending: false })
 		.limit(10);
 

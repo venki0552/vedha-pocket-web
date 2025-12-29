@@ -48,7 +48,7 @@ export default async function AnalyticsPage() {
 	const { count: conversationCount } = await supabase
 		.from("conversations")
 		.select("*", { count: "exact", head: true })
-		.eq("user_id", user.id);
+		.eq("created_by", user.id);
 
 	const { count: messageCount } = await supabase
 		.from("messages")
