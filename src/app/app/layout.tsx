@@ -22,6 +22,11 @@ export default async function AppLayout({
 		.select("org_id, role, orgs(id, name, slug)")
 		.eq("user_id", user.id);
 
+	// Debug: log errors
+	if (membershipError) {
+		console.error("Membership query error:", membershipError);
+	}
+
 	// If no org, create one
 	if (!memberships || memberships.length === 0) {
 		// Check if user already has an org as owner (in case membership insert failed previously)
@@ -80,13 +85,25 @@ export default async function AppLayout({
 
 	// If still no memberships after creation attempt, show error state
 	if (!memberships || memberships.length === 0) {
+		// Debug info for troubleshooting
+		const debugInfo = {
+			userId: user.id,
+			email: user.email,
+			membershipError: membershipError?.message,
+			supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL ? "set" : "missing",
+		};
+		console.error("Setup failed - debug info:", debugInfo);
+		
 		return (
 			<div className="flex min-h-screen items-center justify-center">
-				<div className="text-center">
+				<div className="text-center max-w-md">
 					<h1 className="text-2xl font-bold">Setup Error</h1>
 					<p className="text-muted-foreground mt-2">
 						Unable to set up your workspace. Please try logging out and back in.
 					</p>
+					<pre className="mt-4 p-2 bg-muted rounded text-xs text-left overflow-auto">
+						{JSON.stringify(debugInfo, null, 2)}
+					</pre>
 					<form action="/api/auth/signout" method="POST" className="mt-4">
 						<button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded">
 							Sign Out
