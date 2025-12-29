@@ -38,6 +38,7 @@ import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "@/components/ui/use-toast";
 import { Spinner } from "@/components/ui/spinner";
+import { Markdown } from "@/components/ui/markdown";
 import {
 	ArrowLeft,
 	Plus,
@@ -290,13 +291,28 @@ export function PocketView({
 								case "status":
 									return { ...msg, status: event.payload };
 								case "queries":
-									return { ...msg, queries: event.payload, status: `Searching ${event.payload.length} queries...` };
+									return {
+										...msg,
+										queries: event.payload,
+										status: `Searching ${event.payload.length} queries...`,
+									};
 								case "sources":
-									return { ...msg, sources: event.payload, status: `Found ${event.payload.length} sources` };
+									return {
+										...msg,
+										sources: event.payload,
+										status: `Found ${event.payload.length} sources`,
+									};
 								case "thinking":
-									return { ...msg, thinking: (msg.thinking || "") + event.payload };
+									return {
+										...msg,
+										thinking: (msg.thinking || "") + event.payload,
+									};
 								case "token":
-									return { ...msg, content: msg.content + event.payload, status: undefined };
+									return {
+										...msg,
+										content: msg.content + event.payload,
+										status: undefined,
+									};
 								case "done":
 									return {
 										...msg,
@@ -330,7 +346,8 @@ export function PocketView({
 					msg.id === assistantMessageId
 						? {
 								...msg,
-								content: error instanceof Error ? error.message : "Unknown error",
+								content:
+									error instanceof Error ? error.message : "Unknown error",
 								isStreaming: false,
 								status: undefined,
 						  }
@@ -540,7 +557,10 @@ export function PocketView({
 							className='flex-1 flex flex-col min-h-0 mt-2 data-[state=inactive]:hidden'
 						>
 							{/* Messages - scrollable container */}
-							<div className='flex-1 h-0 overflow-y-auto pr-4' style={{ maxHeight: 'calc(100vh - 300px)' }}>
+							<div
+								className='flex-1 h-0 overflow-y-auto pr-4'
+								style={{ maxHeight: "calc(100vh - 300px)" }}
+							>
 								<div className='space-y-4 py-4'>
 									{isLoadingMessages ? (
 										<div className='flex items-center justify-center py-12'>
@@ -640,7 +660,7 @@ export function PocketView({
 															<CollapsibleContent className='mt-1 text-xs text-muted-foreground bg-background/50 rounded p-2'>
 																<ul className='list-disc list-inside'>
 																	{message.sources.map((s, i) => (
-																		<li key={i}>{s.title || 'Untitled'}</li>
+																		<li key={i}>{s.title || "Untitled"}</li>
 																	))}
 																</ul>
 															</CollapsibleContent>
@@ -648,12 +668,13 @@ export function PocketView({
 													)}
 
 													{/* Main content */}
-													<p className='whitespace-pre-wrap'>
-														{message.content}
-														{message.isStreaming && !message.content && (
-															<span className='inline-block w-2 h-4 bg-current animate-pulse ml-1' />
-														)}
-													</p>
+													<div className='prose-container'>
+														{message.content ? (
+															<Markdown content={message.content} />
+														) : message.isStreaming ? (
+															<span className='inline-block w-2 h-4 bg-current animate-pulse' />
+														) : null}
+													</div>
 
 													{/* Citations */}
 													{message.citations &&
