@@ -34,19 +34,20 @@ export default async function AppLayout({
 		console.error("No memberships found:", debugInfo);
 
 		return (
-			<div className="flex min-h-screen items-center justify-center">
-				<div className="text-center max-w-md">
-					<h1 className="text-2xl font-bold">Setup Error</h1>
-					<p className="text-muted-foreground mt-2">
-						Your workspace was not set up properly. This can happen if you signed up before the system was fully configured.
+			<div className='flex min-h-screen items-center justify-center'>
+				<div className='text-center max-w-md'>
+					<h1 className='text-2xl font-bold'>Setup Error</h1>
+					<p className='text-muted-foreground mt-2'>
+						Your workspace was not set up properly. This can happen if you
+						signed up before the system was fully configured.
 					</p>
-					<pre className="mt-4 p-2 bg-muted rounded text-xs text-left overflow-auto">
+					<pre className='mt-4 p-2 bg-muted rounded text-xs text-left overflow-auto'>
 						{JSON.stringify(debugInfo, null, 2)}
 					</pre>
-					<form action="/api/auth/signout" method="POST" className="mt-4">
+					<form action='/api/auth/signout' method='POST' className='mt-4'>
 						<button
-							type="submit"
-							className="px-4 py-2 bg-primary text-primary-foreground rounded"
+							type='submit'
+							className='px-4 py-2 bg-primary text-primary-foreground rounded'
 						>
 							Sign Out
 						</button>
