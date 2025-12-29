@@ -676,12 +676,16 @@ export function PocketView({
 														) : null}
 													</div>
 
-													{/* Citations */}
+													{/* Citations - deduplicated by source */}
 													{message.citations &&
 														message.citations.length > 0 && (
 															<div className='mt-2 space-y-1 border-t pt-2'>
 																<p className='text-xs font-medium'>Sources:</p>
-																{message.citations.map((citation, i) => (
+																{Array.from(
+																	new Map(
+																		message.citations.map((c) => [c.sourceId || c.title, c])
+																	).values()
+																).map((citation, i) => (
 																	<p key={i} className='text-xs opacity-80'>
 																		[{i + 1}] {citation.title}
 																	</p>
