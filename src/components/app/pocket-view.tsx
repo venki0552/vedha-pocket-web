@@ -55,7 +55,13 @@ interface Source {
 	url: string | null;
 	storage_path: string | null;
 	size_bytes: number;
-	status: "queued" | "extracting" | "chunking" | "embedding" | "ready" | "failed";
+	status:
+		| "queued"
+		| "extracting"
+		| "chunking"
+		| "embedding"
+		| "ready"
+		| "failed";
 	error_message: string | null;
 	created_at: string;
 	updated_at: string;
@@ -107,7 +113,10 @@ export function PocketView({
 	const [messages, setMessages] = useState<Message[]>([]);
 	const [inputMessage, setInputMessage] = useState("");
 	const [isStreaming, setIsStreaming] = useState(false);
-	const [conversationId, setConversationId] = useState<string | null>(null);
+	const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+	const [conversationId, setConversationId] = useState<string | null>(
+		initialConversations.length > 0 ? initialConversations[0].id : null
+	);
 	const messagesEndRef = useRef<HTMLDivElement>(null);
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -118,6 +127,37 @@ export function PocketView({
 	useEffect(() => {
 		scrollToBottom();
 	}, [messages]);
+
+	// Load messages when conversation is selected or on initial load
+	useEffect(() => {
+		const loadMessages = async () => {
+			if (!conversationId) {
+				setMessages([]);
+				return;
+			}
+
+			setIsLoadingMessages(true);
+			try {
+				const response = await api.getMessages(conversationId);
+				const loadedMessages: Message[] = (response.data || []).map(
+					(m: any) => ({
+						id: m.id,
+						role: m.role,
+						content: m.content,
+						citations: m.citations || [],
+						created_at: m.created_at,
+					})
+				);
+				setMessages(loadedMessages);
+			} catch (error) {
+				console.error("Failed to load messages:", error);
+			} finally {
+				setIsLoadingMessages(false);
+			}
+		};
+
+		loadMessages();
+	}, [conversationId]);
 
 	// Add URL mutation
 	const addUrlMutation = useMutation({
@@ -385,82 +425,106 @@ export function PocketView({
 						onValueChange={setActiveTab}
 						className='flex flex-1 flex-col'
 					>
-						<TabsList className='grid w-64 grid-cols-2'>
-							<TabsTrigger value='chat' className='gap-2'>
-								<MessageSquare className='h-4 w-4' />
-								Chat
-							</TabsTrigger>
-							<TabsTrigger value='sources' className='gap-2'>
-								<FileText className='h-4 w-4' />
-								Sources ({sources.length})
-							</TabsTrigger>
-						</TabsList>
+						<div className='flex items-center justify-between'>
+							<TabsList className='grid w-64 grid-cols-2'>
+								<TabsTrigger value='chat' className='gap-2'>
+									<MessageSquare className='h-4 w-4' />
+									Chat
+								</TabsTrigger>
+								<TabsTrigger value='sources' className='gap-2'>
+									<FileText className='h-4 w-4' />
+									Sources ({sources.length})
+								</TabsTrigger>
+							</TabsList>
+							{activeTab === "chat" && conversationId && (
+								<Button
+									variant='ghost'
+									size='sm'
+									onClick={() => {
+										setConversationId(null);
+										setMessages([]);
+									}}
+									className='gap-2'
+								>
+									<Plus className='h-4 w-4' />
+									New Chat
+								</Button>
+							)}
+						</div>
 
 						<TabsContent
 							value='chat'
-							className='flex flex-1 flex-col overflow-hidden'
+							className='flex flex-1 flex-col overflow-hidden mt-2'
 						>
 							{/* Messages */}
-							<ScrollArea className='flex-1 pr-4'>
-								<div className='space-y-4 py-4'>
-									{messages.length === 0 ? (
-										<div className='flex flex-col items-center justify-center py-12 text-center'>
-											<MessageSquare className='h-12 w-12 text-muted-foreground' />
-											<h3 className='mt-4 text-lg font-semibold'>
-												Start a conversation
-											</h3>
-											<p className='mt-2 text-sm text-muted-foreground'>
-												Ask questions about your sources. Answers will include
-												citations.
-											</p>
-										</div>
-									) : (
-										messages.map((message) => (
-											<div
-												key={message.id}
-												className={cn(
-													"flex gap-3",
-													message.role === "user"
-														? "justify-end"
-														: "justify-start"
-												)}
-											>
+							<div className='flex-1 overflow-hidden relative'>
+								<ScrollArea className='h-full absolute inset-0 pr-4'>
+									<div className='space-y-4 py-4'>
+										{isLoadingMessages ? (
+											<div className='flex items-center justify-center py-12'>
+												<Spinner size='lg' />
+											</div>
+										) : messages.length === 0 ? (
+											<div className='flex flex-col items-center justify-center py-12 text-center'>
+												<MessageSquare className='h-12 w-12 text-muted-foreground' />
+												<h3 className='mt-4 text-lg font-semibold'>
+													Start a conversation
+												</h3>
+												<p className='mt-2 text-sm text-muted-foreground'>
+													Ask questions about your sources. Answers will include
+													citations.
+												</p>
+											</div>
+										) : (
+											messages.map((message) => (
 												<div
+													key={message.id}
 													className={cn(
-														"max-w-[80%] rounded-lg px-4 py-2",
+														"flex gap-3",
 														message.role === "user"
-															? "bg-primary text-primary-foreground"
-															: "bg-muted"
+															? "justify-end"
+															: "justify-start"
 													)}
 												>
-													<p className='whitespace-pre-wrap'>
-														{message.content}
-													</p>
-													{message.citations &&
-														message.citations.length > 0 && (
-															<div className='mt-2 space-y-1 border-t pt-2'>
-																<p className='text-xs font-medium'>Sources:</p>
-																{message.citations.map((citation, i) => (
-																	<p key={i} className='text-xs opacity-80'>
-																		[{i + 1}] {citation.title}
-																	</p>
-																))}
-															</div>
+													<div
+														className={cn(
+															"max-w-[80%] rounded-lg px-4 py-2",
+															message.role === "user"
+																? "bg-primary text-primary-foreground"
+																: "bg-muted"
 														)}
+													>
+														<p className='whitespace-pre-wrap'>
+															{message.content}
+														</p>
+														{message.citations &&
+															message.citations.length > 0 && (
+																<div className='mt-2 space-y-1 border-t pt-2'>
+																	<p className='text-xs font-medium'>
+																		Sources:
+																	</p>
+																	{message.citations.map((citation, i) => (
+																		<p key={i} className='text-xs opacity-80'>
+																			[{i + 1}] {citation.title}
+																		</p>
+																	))}
+																</div>
+															)}
+													</div>
+												</div>
+											))
+										)}
+										{isStreaming && (
+											<div className='flex justify-start'>
+												<div className='rounded-lg bg-muted px-4 py-2'>
+													<Spinner size='sm' />
 												</div>
 											</div>
-										))
-									)}
-									{isStreaming && (
-										<div className='flex justify-start'>
-											<div className='rounded-lg bg-muted px-4 py-2'>
-												<Spinner size='sm' />
-											</div>
-										</div>
-									)}
-									<div ref={messagesEndRef} />
-								</div>
-							</ScrollArea>
+										)}
+										<div ref={messagesEndRef} />
+									</div>
+								</ScrollArea>
+							</div>
 
 							{/* Input */}
 							<div className='flex gap-2 pt-4'>
@@ -534,9 +598,12 @@ export function PocketView({
 																	Open
 																</a>
 															)}
-															{source.type !== "url" && source.size_bytes > 0 && (
-																<span>{formatFileSize(source.size_bytes)}</span>
-															)}
+															{source.type !== "url" &&
+																source.size_bytes > 0 && (
+																	<span>
+																		{formatFileSize(source.size_bytes)}
+																	</span>
+																)}
 														</div>
 														{source.status === "failed" &&
 															source.error_message && (
