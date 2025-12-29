@@ -1,6 +1,6 @@
 {
-  "name": "@vedha/web",
-  "version": "0.1.0",
+  "name": "vedha-pocket-web",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev --port 3000",
@@ -28,7 +28,6 @@
     "@supabase/ssr": "^0.1.0",
     "@supabase/supabase-js": "^2.39.0",
     "@tanstack/react-query": "^5.14.0",
-    "@vedha/shared": "workspace:*",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
     "date-fns": "^3.0.6",
