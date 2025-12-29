@@ -71,7 +71,7 @@ export default function LoginPage() {
 		setIsLoading(true);
 
 		try {
-			const { error } = await supabase.auth.signUp({
+			const { data, error } = await supabase.auth.signUp({
 				email,
 				password,
 				options: {
@@ -87,7 +87,12 @@ export default function LoginPage() {
 					description: error.message,
 					variant: "destructive",
 				});
-			} else {
+			} else if (data.session) {
+				// Email confirmation is disabled - user is logged in directly
+				router.push("/app");
+				router.refresh();
+			} else if (data.user && !data.session) {
+				// Email confirmation is enabled - show message
 				toast({
 					title: "Check your email",
 					description:
