@@ -34,13 +34,19 @@ export async function apiFetch<T>(
   
   const authHeaders = await getAuthHeaders();
   
+  // Only set Content-Type to application/json if there's a body
+  const headers: Record<string, string> = {
+    ...authHeaders,
+    ...fetchOptions.headers as Record<string, string>,
+  };
+  
+  if (fetchOptions.body) {
+    headers['Content-Type'] = 'application/json';
+  }
+  
   const response = await fetch(url, {
     ...fetchOptions,
-    headers: {
-      'Content-Type': 'application/json',
-      ...authHeaders,
-      ...fetchOptions.headers,
-    },
+    headers,
   });
   
   if (!response.ok) {
