@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,11 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+	Collapsible,
+	CollapsibleContent,
+	CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "@/components/ui/use-toast";
@@ -46,6 +51,12 @@ import {
 	ExternalLink,
 	Loader2,
 	RefreshCw,
+	Settings,
+	ChevronDown,
+	ChevronRight,
+	Brain,
+	Search,
+	BookOpen,
 } from "lucide-react";
 
 interface Source {
@@ -87,6 +98,12 @@ interface Message {
 	content: string;
 	citations: { sourceId: string; title: string; chunk: string }[];
 	created_at: string;
+	// Streaming state
+	isStreaming?: boolean;
+	status?: string;
+	queries?: string[];
+	sources?: { source_id: string; title: string }[];
+	thinking?: string;
 }
 
 interface PocketViewProps {
@@ -117,8 +134,16 @@ export function PocketView({
 	const [conversationId, setConversationId] = useState<string | null>(
 		initialConversations.length > 0 ? initialConversations[0].id : null
 	);
+	const [showThinking, setShowThinking] = useState<Record<string, boolean>>({});
 	const messagesEndRef = useRef<HTMLDivElement>(null);
 	const fileInputRef = useRef<HTMLInputElement>(null);
+
+	// Fetch stats
+	const { data: stats } = useQuery({
+		queryKey: ["stats", pocket.id],
+		queryFn: () => api.getStats(pocket.id),
+		refetchInterval: 30000, // Refresh every 30s
+	});
 
 	const scrollToBottom = () => {
 		messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -236,31 +261,82 @@ export function PocketView({
 			created_at: new Date().toISOString(),
 		};
 
-		setMessages((prev) => [...prev, userMessage]);
+		const assistantMessageId = `assistant-${Date.now()}`;
+		const assistantMessage: Message = {
+			id: assistantMessageId,
+			role: "assistant",
+			content: "",
+			citations: [],
+			created_at: new Date().toISOString(),
+			isStreaming: true,
+			status: "Starting...",
+		};
+
+		setMessages((prev) => [...prev, userMessage, assistantMessage]);
 		setInputMessage("");
 		setIsStreaming(true);
 
 		try {
-			const response = await api.ask(
+			const result = await api.askStream(
 				pocket.id,
 				inputMessage.trim(),
-				conversationId ?? undefined
+				conversationId ?? undefined,
+				(event) => {
+					setMessages((prev) =>
+						prev.map((msg) => {
+							if (msg.id !== assistantMessageId) return msg;
+
+							switch (event.type) {
+								case "status":
+									return { ...msg, status: event.payload };
+								case "queries":
+									return { ...msg, queries: event.payload, status: `Searching ${event.payload.length} queries...` };
+								case "sources":
+									return { ...msg, sources: event.payload, status: `Found ${event.payload.length} sources` };
+								case "thinking":
+									return { ...msg, thinking: (msg.thinking || "") + event.payload };
+								case "token":
+									return { ...msg, content: msg.content + event.payload, status: undefined };
+								case "done":
+									return {
+										...msg,
+										content: event.payload.answer,
+										citations: event.payload.citations || [],
+										isStreaming: false,
+										status: undefined,
+									};
+								case "error":
+									return {
+										...msg,
+										content: `Error: ${event.payload}`,
+										isStreaming: false,
+										status: undefined,
+									};
+								default:
+									return msg;
+							}
+						})
+					);
+					scrollToBottom();
+				}
 			);
 
-			const assistantMessage: Message = {
-				id: response.data.message_id,
-				role: "assistant",
-				content: response.data.answer,
-				citations: response.data.citations || [],
-				created_at: new Date().toISOString(),
-			};
-
-			setMessages((prev) => [...prev, assistantMessage]);
-
-			if (!conversationId && response.data.conversation_id) {
-				setConversationId(response.data.conversation_id);
+			if (!conversationId && result.conversation_id) {
+				setConversationId(result.conversation_id);
 			}
 		} catch (error) {
+			setMessages((prev) =>
+				prev.map((msg) =>
+					msg.id === assistantMessageId
+						? {
+								...msg,
+								content: error instanceof Error ? error.message : "Unknown error",
+								isStreaming: false,
+								status: undefined,
+						  }
+						: msg
+				)
+			);
 			toast({
 				title: "Failed to get response",
 				description: error instanceof Error ? error.message : "Unknown error",
@@ -312,11 +388,18 @@ export function PocketView({
 					</Link>
 					<div>
 						<h1 className='text-2xl font-bold'>{pocket.name}</h1>
-						{pocket.description && (
-							<p className='text-sm text-muted-foreground'>
-								{pocket.description}
-							</p>
-						)}
+						<div className='flex items-center gap-3'>
+							{pocket.description && (
+								<p className='text-sm text-muted-foreground'>
+									{pocket.description}
+								</p>
+							)}
+							{stats?.data && (
+								<span className='text-xs text-muted-foreground'>
+									{stats.data.documents} docs • {stats.data.chunks} chunks
+								</span>
+							)}
+						</div>
 					</div>
 				</div>
 				{canEdit && (
@@ -493,9 +576,86 @@ export function PocketView({
 															: "bg-muted"
 													)}
 												>
+													{/* Status indicator */}
+													{message.status && (
+														<div className='flex items-center gap-2 text-sm text-muted-foreground mb-2'>
+															<Loader2 className='h-3 w-3 animate-spin' />
+															{message.status}
+														</div>
+													)}
+
+													{/* Thinking section (collapsible) */}
+													{message.thinking && (
+														<Collapsible
+															open={showThinking[message.id]}
+															onOpenChange={(open: boolean) =>
+																setShowThinking((prev) => ({
+																	...prev,
+																	[message.id]: open,
+																}))
+															}
+															className='mb-2'
+														>
+															<CollapsibleTrigger className='flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground'>
+																<Brain className='h-3 w-3' />
+																Thinking
+																{showThinking[message.id] ? (
+																	<ChevronDown className='h-3 w-3' />
+																) : (
+																	<ChevronRight className='h-3 w-3' />
+																)}
+															</CollapsibleTrigger>
+															<CollapsibleContent className='mt-1 text-xs text-muted-foreground bg-background/50 rounded p-2 max-h-32 overflow-auto'>
+																{message.thinking}
+															</CollapsibleContent>
+														</Collapsible>
+													)}
+
+													{/* Queries used (collapsible) */}
+													{message.queries && message.queries.length > 0 && (
+														<Collapsible className='mb-2'>
+															<CollapsibleTrigger className='flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground'>
+																<Search className='h-3 w-3' />
+																{message.queries.length} search queries
+																<ChevronRight className='h-3 w-3' />
+															</CollapsibleTrigger>
+															<CollapsibleContent className='mt-1 text-xs text-muted-foreground bg-background/50 rounded p-2'>
+																<ul className='list-disc list-inside'>
+																	{message.queries.map((q, i) => (
+																		<li key={i}>{q}</li>
+																	))}
+																</ul>
+															</CollapsibleContent>
+														</Collapsible>
+													)}
+
+													{/* Sources used (collapsible) */}
+													{message.sources && message.sources.length > 0 && (
+														<Collapsible className='mb-2'>
+															<CollapsibleTrigger className='flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground'>
+																<BookOpen className='h-3 w-3' />
+																{message.sources.length} sources
+																<ChevronRight className='h-3 w-3' />
+															</CollapsibleTrigger>
+															<CollapsibleContent className='mt-1 text-xs text-muted-foreground bg-background/50 rounded p-2'>
+																<ul className='list-disc list-inside'>
+																	{message.sources.map((s, i) => (
+																		<li key={i}>{s.title || 'Untitled'}</li>
+																	))}
+																</ul>
+															</CollapsibleContent>
+														</Collapsible>
+													)}
+
+													{/* Main content */}
 													<p className='whitespace-pre-wrap'>
 														{message.content}
+														{message.isStreaming && !message.content && (
+															<span className='inline-block w-2 h-4 bg-current animate-pulse ml-1' />
+														)}
 													</p>
+
+													{/* Citations */}
 													{message.citations &&
 														message.citations.length > 0 && (
 															<div className='mt-2 space-y-1 border-t pt-2'>
@@ -513,9 +673,7 @@ export function PocketView({
 									)}
 									{isStreaming && (
 										<div className='flex justify-start'>
-											<div className='rounded-lg bg-muted px-4 py-2'>
-												<Spinner size='sm' />
-											</div>
+											{/* Streaming is now shown in the message itself */}
 										</div>
 									)}
 									<div ref={messagesEndRef} />

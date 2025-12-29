@@ -153,8 +153,67 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ pocket_id: pocketId, query, conversation_id: conversationId }),
     }),
+  // Streaming ask endpoint - returns EventSource-like response
+  askStream: async (
+    pocketId: string, 
+    query: string, 
+    conversationId?: string,
+    onEvent?: (event: { type: string; payload: any }) => void
+  ): Promise<{ answer: string; citations: any[]; conversation_id: string; message_id?: string }> => {
+    const supabase = createClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    const response = await fetch(`${API_URL}/ask/stream`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(session?.access_token ? { 'Authorization': `Bearer ${session.access_token}` } : {}),
+      },
+      body: JSON.stringify({ pocket_id: pocketId, query, conversation_id: conversationId }),
+    });
+
+    if (!response.ok || !response.body) {
+      throw new Error('Failed to start streaming');
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let result: any = {};
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const parts = buffer.split('\n\n');
+      buffer = parts.pop() || '';
+
+      for (const part of parts) {
+        if (!part.startsWith('data:')) continue;
+        const data = part.replace('data:', '').trim();
+        if (!data) continue;
+
+        try {
+          const event = JSON.parse(data);
+          if (onEvent) onEvent(event);
+          
+          if (event.type === 'done') {
+            result = event.payload;
+          }
+        } catch {
+          continue;
+        }
+      }
+    }
+
+    return result;
+  },
   getMessages: (conversationId: string) =>
     apiFetch<{ data: any[] }>(`/ask/${conversationId}/messages`),
+  // Stats
+  getStats: (pocketId: string) =>
+    apiFetch<{ data: { documents: number; chunks: number } }>(`/stats/${pocketId}`),
   
   // Tasks
   listTasks: (params?: { pocket_id?: string; status?: string; overdue?: boolean }) =>
