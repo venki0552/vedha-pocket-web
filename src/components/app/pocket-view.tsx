@@ -454,74 +454,72 @@ export function PocketView({
 
 						<TabsContent
 							value='chat'
-							className='flex flex-1 flex-col min-h-0 mt-2'
+							className='flex-1 flex flex-col min-h-0 mt-2 data-[state=inactive]:hidden'
 						>
-							{/* Messages */}
-							<div className='flex-1 min-h-0 overflow-y-auto pr-4'>
+							{/* Messages - scrollable container */}
+							<div className='flex-1 h-0 overflow-y-auto pr-4' style={{ maxHeight: 'calc(100vh - 300px)' }}>
 								<div className='space-y-4 py-4'>
-										{isLoadingMessages ? (
-											<div className='flex items-center justify-center py-12'>
-												<Spinner size='lg' />
-											</div>
-										) : messages.length === 0 ? (
-											<div className='flex flex-col items-center justify-center py-12 text-center'>
-												<MessageSquare className='h-12 w-12 text-muted-foreground' />
-												<h3 className='mt-4 text-lg font-semibold'>
-													Start a conversation
-												</h3>
-												<p className='mt-2 text-sm text-muted-foreground'>
-													Ask questions about your sources. Answers will include
-													citations.
-												</p>
-											</div>
-										) : (
-											messages.map((message) => (
+									{isLoadingMessages ? (
+										<div className='flex items-center justify-center py-12'>
+											<Spinner size='lg' />
+										</div>
+									) : messages.length === 0 ? (
+										<div className='flex flex-col items-center justify-center py-12 text-center'>
+											<MessageSquare className='h-12 w-12 text-muted-foreground' />
+											<h3 className='mt-4 text-lg font-semibold'>
+												Start a conversation
+											</h3>
+											<p className='mt-2 text-sm text-muted-foreground'>
+												Ask questions about your sources. Answers will include
+												citations.
+											</p>
+										</div>
+									) : (
+										messages.map((message) => (
+											<div
+												key={message.id}
+												className={cn(
+													"flex gap-3",
+													message.role === "user"
+														? "justify-end"
+														: "justify-start"
+												)}
+											>
 												<div
-													key={message.id}
 													className={cn(
-														"flex gap-3",
+														"max-w-[80%] rounded-lg px-4 py-2",
 														message.role === "user"
-															? "justify-end"
-															: "justify-start"
+															? "bg-primary text-primary-foreground"
+															: "bg-muted"
 													)}
 												>
-													<div
-														className={cn(
-															"max-w-[80%] rounded-lg px-4 py-2",
-															message.role === "user"
-																? "bg-primary text-primary-foreground"
-																: "bg-muted"
-														)}
-													>
-														<p className='whitespace-pre-wrap'>
-															{message.content}
-														</p>
-														{message.citations &&
-															message.citations.length > 0 && (
-																<div className='mt-2 space-y-1 border-t pt-2'>
-																	<p className='text-xs font-medium'>
-																		Sources:
+													<p className='whitespace-pre-wrap'>
+														{message.content}
+													</p>
+													{message.citations &&
+														message.citations.length > 0 && (
+															<div className='mt-2 space-y-1 border-t pt-2'>
+																<p className='text-xs font-medium'>Sources:</p>
+																{message.citations.map((citation, i) => (
+																	<p key={i} className='text-xs opacity-80'>
+																		[{i + 1}] {citation.title}
 																	</p>
-																	{message.citations.map((citation, i) => (
-																		<p key={i} className='text-xs opacity-80'>
-																			[{i + 1}] {citation.title}
-																		</p>
-																	))}
-																</div>
-															)}
-													</div>
-												</div>
-											))
-										)}
-										{isStreaming && (
-											<div className='flex justify-start'>
-												<div className='rounded-lg bg-muted px-4 py-2'>
-													<Spinner size='sm' />
+																))}
+															</div>
+														)}
 												</div>
 											</div>
-										)}
-										<div ref={messagesEndRef} />
-									</div>
+										))
+									)}
+									{isStreaming && (
+										<div className='flex justify-start'>
+											<div className='rounded-lg bg-muted px-4 py-2'>
+												<Spinner size='sm' />
+											</div>
+										</div>
+									)}
+									<div ref={messagesEndRef} />
+								</div>
 							</div>
 
 							{/* Input */}
