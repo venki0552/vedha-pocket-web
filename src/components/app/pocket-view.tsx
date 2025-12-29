@@ -454,12 +454,11 @@ export function PocketView({
 
 						<TabsContent
 							value='chat'
-							className='flex flex-1 flex-col overflow-hidden mt-2'
+							className='flex flex-1 flex-col min-h-0 mt-2'
 						>
 							{/* Messages */}
-							<div className='flex-1 overflow-hidden relative'>
-								<ScrollArea className='h-full absolute inset-0 pr-4'>
-									<div className='space-y-4 py-4'>
+							<div className='flex-1 min-h-0 overflow-y-auto pr-4'>
+								<div className='space-y-4 py-4'>
 										{isLoadingMessages ? (
 											<div className='flex items-center justify-center py-12'>
 												<Spinner size='lg' />
@@ -523,7 +522,6 @@ export function PocketView({
 										)}
 										<div ref={messagesEndRef} />
 									</div>
-								</ScrollArea>
 							</div>
 
 							{/* Input */}
