@@ -16,96 +16,38 @@ export default async function AppLayout({
 		redirect("/login");
 	}
 
-	// Get user's orgs
-	let { data: memberships, error: membershipError } = await supabase
+	// Get user's memberships with org details (READ ONLY - no inserts from web)
+	// Orgs are auto-created by database trigger on signup
+	const { data: memberships, error: membershipError } = await supabase
 		.from("memberships")
 		.select("org_id, role, orgs(id, name, slug)")
 		.eq("user_id", user.id);
 
-	// Debug: log errors
-	if (membershipError) {
-		console.error("Membership query error:", membershipError);
-	}
-
-	// If no org, create one
+	// If no memberships, the signup trigger may have failed
 	if (!memberships || memberships.length === 0) {
-		// Check if user already has an org as owner (in case membership insert failed previously)
-		const { data: existingOrg } = await supabase
-			.from("orgs")
-			.select("id, name, slug")
-			.eq("owner_id", user.id)
-			.single();
-
-		if (existingOrg) {
-			// Org exists but membership doesn't - create the membership
-			const { error: insertMembershipError } = await supabase.from("memberships").insert({
-				org_id: existingOrg.id,
-				user_id: user.id,
-				role: "owner",
-			});
-
-			if (!insertMembershipError) {
-				// Successfully created membership, use this org
-				memberships = [{
-					org_id: existingOrg.id,
-					role: "owner",
-					orgs: [existingOrg]
-				}];
-			}
-		} else {
-			// Create new org
-			const { data: org, error: orgError } = await supabase
-				.from("orgs")
-				.insert({
-					name: "Personal",
-					slug: `personal-${user.id.substring(0, 8)}`,
-					owner_id: user.id,
-				})
-				.select()
-				.single();
-
-			if (org) {
-				const { error: membershipInsertError } = await supabase.from("memberships").insert({
-					org_id: org.id,
-					user_id: user.id,
-					role: "owner",
-				});
-
-				if (!membershipInsertError) {
-					// Successfully created org and membership
-					memberships = [{
-						org_id: org.id,
-						role: "owner",
-						orgs: [org]
-					}];
-				}
-			}
-		}
-	}
-
-	// If still no memberships after creation attempt, show error state
-	if (!memberships || memberships.length === 0) {
-		// Debug info for troubleshooting
 		const debugInfo = {
 			userId: user.id,
 			email: user.email,
-			membershipError: membershipError?.message,
-			supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL ? "set" : "missing",
+			error: membershipError?.message || "No memberships found",
+			hint: "Org should be auto-created on signup. Try signing out and creating a new account.",
 		};
-		console.error("Setup failed - debug info:", debugInfo);
-		
+		console.error("No memberships found:", debugInfo);
+
 		return (
 			<div className="flex min-h-screen items-center justify-center">
 				<div className="text-center max-w-md">
 					<h1 className="text-2xl font-bold">Setup Error</h1>
 					<p className="text-muted-foreground mt-2">
-						Unable to set up your workspace. Please try logging out and back in.
+						Your workspace was not set up properly. This can happen if you signed up before the system was fully configured.
 					</p>
 					<pre className="mt-4 p-2 bg-muted rounded text-xs text-left overflow-auto">
 						{JSON.stringify(debugInfo, null, 2)}
 					</pre>
 					<form action="/api/auth/signout" method="POST" className="mt-4">
-						<button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded">
+						<button
+							type="submit"
+							className="px-4 py-2 bg-primary text-primary-foreground rounded"
+						>
 							Sign Out
 						</button>
 					</form>
