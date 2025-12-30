@@ -114,7 +114,7 @@ export default function LoginPage() {
 		<div className='flex min-h-screen flex-col items-center justify-center bg-slate-50 p-4 dark:bg-background'>
 			<Link href='/' className='mb-8 flex items-center space-x-2'>
 				<Brain className='h-8 w-8 text-primary' />
-				<span className='text-2xl font-bold'>Vedha Pocket</span>
+				<span className='text-2xl font-bold'>Memory Palace</span>
 			</Link>
 
 			<Card className='w-full max-w-md'>

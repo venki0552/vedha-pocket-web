@@ -59,8 +59,8 @@ export class OpenRouterEmbeddingProvider implements EmbeddingProvider {
       headers: {
         'Authorization': `Bearer ${this.apiKey}`,
         'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://vedha.pocket',
-        'X-Title': 'Vedha Pocket',
+        'HTTP-Referer': 'https://memorypalace.app',
+        'X-Title': 'Memory Palace',
       },
       body: JSON.stringify({
         model: this.model,
@@ -147,8 +147,8 @@ export class OpenRouterChatProvider implements ChatProvider {
       headers: {
         'Authorization': `Bearer ${this.apiKey}`,
         'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://vedha.pocket',
-        'X-Title': 'Vedha Pocket',
+        'HTTP-Referer': 'https://memorypalace.app',
+        'X-Title': 'Memory Palace',
       },
       body: JSON.stringify({
         model,

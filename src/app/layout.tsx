@@ -8,7 +8,7 @@ import { Toaster } from "@/components/ui/toaster";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-	title: "Vedha Pocket - AI-Powered Document Management",
+	title: "Memory Palace - AI-Powered Knowledge Management",
 	description:
 		"Save, search, and chat with your documents and web sources. Get cited answers from your personal knowledge base.",
 	keywords: ["document management", "AI", "RAG", "knowledge base", "search"],

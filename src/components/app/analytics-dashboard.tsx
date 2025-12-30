@@ -92,7 +92,7 @@ export function AnalyticsDashboard({ stats }: AnalyticsDashboardProps) {
 			<Card>
 				<CardHeader>
 					<CardTitle>Usage Tips</CardTitle>
-					<CardDescription>Get the most out of Vedha Pocket</CardDescription>
+					<CardDescription>Get the most out of Memory Palace</CardDescription>
 				</CardHeader>
 				<CardContent className='space-y-4'>
 					<div className='space-y-2'>

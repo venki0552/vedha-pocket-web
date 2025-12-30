@@ -72,7 +72,7 @@ export function ApiKeySetupModal({ open }: ApiKeySetupModalProps) {
 						OpenRouter API Key Required
 					</DialogTitle>
 					<DialogDescription>
-						To use Vedha Pocket, you need to provide your own OpenRouter API
+						To use Memory Palace, you need to provide your own OpenRouter API
 						key. Your key is encrypted and stored securely.
 					</DialogDescription>
 				</DialogHeader>
