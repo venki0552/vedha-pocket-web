@@ -271,15 +271,15 @@ export function MemoryEditorDialog({
 					colorClasses[color]
 				)}
 			>
-				<DialogHeader className='flex flex-row items-center justify-between px-6 py-4 border-b'>
-					<DialogTitle className='text-lg font-medium'>
+				<DialogHeader className='flex flex-row items-start justify-between gap-4 px-6 py-4 border-b min-h-[64px]'>
+					<DialogTitle className='text-lg font-medium flex-1 min-w-0 line-clamp-2 pr-2'>
 						{memory
 							? viewMode === "view"
 								? memory.title || "Untitled Memory"
 								: "Edit Memory"
 							: "New Memory"}
 					</DialogTitle>
-					<div className='flex items-center gap-2'>
+					<div className='flex items-center gap-2 flex-shrink-0'>
 						{viewMode === "view" && memory && (
 							<Button
 								variant='outline'

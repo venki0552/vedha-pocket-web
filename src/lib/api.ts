@@ -281,21 +281,26 @@ export const api = {
   unpublishMemory: (id: string) => apiFetch<{ data: any }>(`/memories/${id}/unpublish`, { method: 'POST' }),
   getMemoryTags: (orgId: string) => apiFetch<{ data: string[] }>('/memories/tags', { params: { org_id: orgId } }),
   getSharedWithMe: () => apiFetch<{ data: any[] }>('/memories/shared/with-me'),
+  reprocessPublishedMemories: (orgId?: string) =>
+    apiFetch<{ data: { queued: number; total: number; message: string } }>('/memories/reprocess-published', {
+      method: 'POST',
+      body: JSON.stringify({ org_id: orgId }),
+    }),
 
   // Memory Shares
-  shareMemory: (memoryId: string, email: string, permission: 'view' | 'comment') =>
+  shareMemory: (memoryIds: string[], email: string, permission: 'view' | 'comment' = 'view') =>
     apiFetch<{ data: any }>('/memory-shares', {
       method: 'POST',
-      body: JSON.stringify({ memory_id: memoryId, email, permission }),
+      body: JSON.stringify({ memory_ids: memoryIds, email, permission }),
     }),
   listMemoryShares: (memoryId: string) =>
-    apiFetch<{ data: any[] }>('/memory-shares', { params: { memory_id: memoryId } }),
+    apiFetch<{ data: any[] }>(`/memory-shares/memory/${memoryId}`),
   removeMemoryShare: (shareId: string) =>
     apiFetch<void>(`/memory-shares/${shareId}`, { method: 'DELETE' }),
 
   // Memory Comments
   listMemoryComments: (memoryId: string) =>
-    apiFetch<{ data: any[] }>('/memory-comments', { params: { memory_id: memoryId } }),
+    apiFetch<{ data: any[] }>(`/memory-comments/memory/${memoryId}`),
   addMemoryComment: (memoryId: string, content: string, positionStart?: number, positionEnd?: number, parentCommentId?: string) =>
     apiFetch<{ data: any }>('/memory-comments', {
       method: 'POST',
