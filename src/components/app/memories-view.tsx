@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import {
 	Plus,
 	Grid3X3,
@@ -9,6 +9,7 @@ import {
 	Tag,
 	Archive,
 	Loader2,
+	GripVertical,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,6 +33,37 @@ export function MemoriesView({ orgId }: MemoriesViewProps) {
 	const [editorOpen, setEditorOpen] = useState(false);
 	const [editingMemory, setEditingMemory] = useState<Memory | null>(null);
 	const [editorViewMode, setEditorViewMode] = useState<"view" | "edit">("edit");
+	
+	// Resizable panel state (percentage for left panel)
+	const [leftPanelWidth, setLeftPanelWidth] = useState(60);
+	const containerRef = useRef<HTMLDivElement>(null);
+	const isDragging = useRef(false);
+
+	const handleMouseDown = useCallback((e: React.MouseEvent) => {
+		e.preventDefault();
+		isDragging.current = true;
+		document.body.style.cursor = 'col-resize';
+		document.body.style.userSelect = 'none';
+
+		const handleMouseMove = (e: MouseEvent) => {
+			if (!isDragging.current || !containerRef.current) return;
+			const containerRect = containerRef.current.getBoundingClientRect();
+			const newWidth = ((e.clientX - containerRect.left) / containerRect.width) * 100;
+			// Clamp between 30% and 80%
+			setLeftPanelWidth(Math.min(80, Math.max(30, newWidth)));
+		};
+
+		const handleMouseUp = () => {
+			isDragging.current = false;
+			document.body.style.cursor = '';
+			document.body.style.userSelect = '';
+			document.removeEventListener('mousemove', handleMouseMove);
+			document.removeEventListener('mouseup', handleMouseUp);
+		};
+
+		document.addEventListener('mousemove', handleMouseMove);
+		document.addEventListener('mouseup', handleMouseUp);
+	}, []);
 
 	// Fetch memories with React Query
 	const {
@@ -91,9 +123,12 @@ export function MemoriesView({ orgId }: MemoriesViewProps) {
 	};
 
 	return (
-		<div className='flex h-full gap-6 overflow-hidden'>
-			{/* Left side - Memories (60%) */}
-			<div className='w-[60%] flex flex-col min-h-0 overflow-hidden'>
+		<div ref={containerRef} className='flex h-full overflow-hidden'>
+			{/* Left side - Memories (resizable) */}
+			<div 
+				className='flex flex-col min-h-0 overflow-hidden pr-3'
+				style={{ width: `${leftPanelWidth}%` }}
+			>
 				{/* Header */}
 				<div className='flex items-center justify-between gap-4 flex-wrap mb-4 flex-shrink-0'>
 					<div className='flex items-center gap-2'>
@@ -235,8 +270,23 @@ export function MemoriesView({ orgId }: MemoriesViewProps) {
 				</div>
 			</div>
 
-			{/* Right side - Chat (40%) */}
-			<div className='w-[40%] border-l pl-6 flex flex-col min-h-0 overflow-hidden'>
+			{/* Resize handle */}
+			<div
+				className='w-1 flex-shrink-0 cursor-col-resize group hover:bg-primary/20 transition-colors relative'
+				onMouseDown={handleMouseDown}
+			>
+				<div className='absolute inset-y-0 -left-1 -right-1 flex items-center justify-center'>
+					<div className='h-8 w-4 rounded bg-muted border flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity'>
+						<GripVertical className='h-3 w-3 text-muted-foreground' />
+					</div>
+				</div>
+			</div>
+
+			{/* Right side - Chat (resizable) */}
+			<div 
+				className='flex flex-col min-h-0 overflow-hidden pl-3'
+				style={{ width: `${100 - leftPanelWidth}%` }}
+			>
 				<h2 className='text-lg font-semibold mb-4 flex items-center gap-2 flex-shrink-0'>
 					<Search className='h-5 w-5' />
 					General Chat
