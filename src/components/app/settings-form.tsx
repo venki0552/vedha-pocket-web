@@ -153,16 +153,21 @@ export function SettingsForm({
 				<CardContent>
 					<div className='grid gap-2'>
 						<Label>Theme</Label>
-						<Select value={settings.theme} onValueChange={handleThemeChange}>
-							<SelectTrigger className='w-48'>
-								<SelectValue />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value='light'>Light</SelectItem>
-								<SelectItem value='dark'>Dark</SelectItem>
-								<SelectItem value='system'>System</SelectItem>
-							</SelectContent>
-						</Select>
+						<div className='flex items-center gap-2'>
+							<Select value={settings.theme} onValueChange={handleThemeChange} disabled={updateSettingsMutation.isPending}>
+								<SelectTrigger className='w-48'>
+									<SelectValue />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value='light'>Light</SelectItem>
+									<SelectItem value='dark'>Dark</SelectItem>
+									<SelectItem value='system'>System</SelectItem>
+								</SelectContent>
+							</Select>
+							{updateSettingsMutation.isPending && (
+								<Loader2 className='h-4 w-4 animate-spin text-muted-foreground' />
+							)}
+						</div>
 					</div>
 				</CardContent>
 			</Card>
@@ -220,6 +225,7 @@ export function SettingsForm({
 									value={apiKey}
 									onChange={(e) => setApiKey(e.target.value)}
 									className='font-mono'
+									disabled={updateSettingsMutation.isPending}
 								/>
 								<p className='text-xs text-muted-foreground'>
 									Get your API key from{" "}
