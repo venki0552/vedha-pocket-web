@@ -35,12 +35,6 @@ export default function HomePage() {
 					<div className='flex flex-1 items-center justify-between space-x-2 md:justify-end'>
 						<nav className='flex items-center space-x-6 text-sm font-medium'>
 							<Link
-								href='/pricing'
-								className='transition-colors hover:text-foreground/80'
-							>
-								Pricing
-							</Link>
-							<Link
 								href='/security'
 								className='transition-colors hover:text-foreground/80'
 							>
