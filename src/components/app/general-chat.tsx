@@ -228,9 +228,9 @@ export function GeneralChat({ orgId }: GeneralChatProps) {
 	};
 
 	return (
-		<div className='flex flex-col h-[calc(100vh-16rem)]'>
+		<div className='flex flex-col h-full'>
 			{/* Chat area */}
-			<div className='flex-1 flex flex-col border rounded-lg overflow-hidden'>
+			<div className='flex-1 flex flex-col border rounded-lg overflow-hidden min-h-0'>
 				{/* Chat header with history toggle - sticky */}
 				<div className='flex-shrink-0 sticky top-0 z-10 bg-background flex items-center justify-between p-3 border-b'>
 					<div className='flex items-center gap-2'>

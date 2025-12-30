@@ -249,15 +249,13 @@ export function MemoryGrid({
 						<Pin className='h-3.5 w-3.5 text-muted-foreground fill-current' />
 					)}
 					{memory.status === "published" ? (
-						<div className='flex items-center gap-1 text-primary'>
-							<Globe className='h-3.5 w-3.5' />
-							<span className='text-xs font-medium'>Published</span>
-						</div>
+						<span title='Published'>
+							<Globe className='h-3.5 w-3.5 text-primary' />
+						</span>
 					) : (
-						<div className='flex items-center gap-1 text-muted-foreground'>
-							<FileEdit className='h-3.5 w-3.5' />
-							<span className='text-xs'>Draft</span>
-						</div>
+						<span title='Draft'>
+							<FileEdit className='h-3.5 w-3.5 text-muted-foreground' />
+						</span>
 					)}
 				</div>
 			</div>

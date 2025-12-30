@@ -78,10 +78,15 @@ export function TiptapEditor({
 	}
 
 	return (
-		<div className={cn("border rounded-lg overflow-hidden", className)}>
+		<div
+			className={cn(
+				"border rounded-lg flex flex-col overflow-hidden",
+				className
+			)}
+		>
 			{editable && (
 				<>
-					<div className='flex flex-wrap items-center gap-1 p-2 border-b bg-muted/50'>
+					<div className='flex flex-wrap items-center gap-1 p-2 border-b bg-muted/50 flex-shrink-0 sticky top-0 z-10'>
 						<Button
 							type='button'
 							variant={editor.isActive("bold") ? "secondary" : "ghost"}
@@ -235,7 +240,9 @@ export function TiptapEditor({
 				</>
 			)}
 
-			<EditorContent editor={editor} />
+			<div className='flex-1 overflow-y-auto'>
+				<EditorContent editor={editor} />
+			</div>
 
 			<style jsx global>{`
 				.ProseMirror ul[data-type="taskList"] {

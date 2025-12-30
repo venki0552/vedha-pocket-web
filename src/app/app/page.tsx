@@ -24,7 +24,7 @@ export default async function AppPage() {
 	}
 
 	return (
-		<div className='space-y-6'>
+		<div className='h-[calc(100vh-8rem)]'>
 			<MemoriesView orgId={membership.org_id} />
 		</div>
 	);

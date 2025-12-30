@@ -279,7 +279,7 @@ export function MemoryEditorDialog({
 								: "Edit Memory"
 							: "New Memory"}
 					</DialogTitle>
-					<div className='flex items-center gap-2 flex-shrink-0'>
+					<div className='flex items-center gap-3 flex-shrink-0 mr-8'>
 						{viewMode === "view" && memory && (
 							<Button
 								variant='outline'
@@ -346,17 +346,17 @@ export function MemoryEditorDialog({
 					</div>
 				) : (
 					/* Edit Mode */
-					<div className='flex-1 overflow-y-auto px-6 py-4 flex flex-col gap-4'>
+					<div className='flex-1 overflow-hidden px-6 py-4 flex flex-col gap-4 min-h-0'>
 						{/* Title */}
 						<Input
 							placeholder='Title'
 							value={title}
 							onChange={(e) => setTitle(e.target.value)}
-							className='text-xl font-medium border-0 bg-transparent focus-visible:ring-0 px-0 h-auto'
+							className='text-xl font-medium border-0 bg-transparent focus-visible:ring-0 px-0 h-auto flex-shrink-0'
 						/>
 
 						{/* Content - Tiptap Editor */}
-						<div className='flex-1 min-h-[300px]'>
+						<div className='flex-1 min-h-0'>
 							<TiptapEditor
 								content={contentHtml || content}
 								onChange={(text, html) => {
@@ -368,7 +368,7 @@ export function MemoryEditorDialog({
 						</div>
 
 						{/* Tags at bottom of edit area */}
-						<div className='pt-4 border-t space-y-3'>
+						<div className='pt-4 border-t space-y-3 flex-shrink-0'>
 							<div className='flex items-center gap-2'>
 								<Tag className='h-4 w-4 text-muted-foreground' />
 								<span className='text-sm text-muted-foreground'>Tags</span>
