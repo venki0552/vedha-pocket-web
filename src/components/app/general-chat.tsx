@@ -78,6 +78,7 @@ export function GeneralChat({ orgId }: GeneralChatProps) {
 	const [isStreaming, setIsStreaming] = useState(false);
 	const [streamingContent, setStreamingContent] = useState("");
 	const [streamingSources, setStreamingSources] = useState<any[]>([]);
+	const [streamingStatus, setStreamingStatus] = useState<string | null>(null);
 	const [showHistory, setShowHistory] = useState(false);
 
 	// Load conversations on mount and auto-select last one
@@ -160,6 +161,7 @@ export function GeneralChat({ orgId }: GeneralChatProps) {
 		setIsStreaming(true);
 		setStreamingContent("");
 		setStreamingSources([]);
+		setStreamingStatus("Searching your memories...");
 
 		// Add user message to UI immediately
 		const userMessage: Message = {
@@ -179,10 +181,22 @@ export function GeneralChat({ orgId }: GeneralChatProps) {
 				activeConversation || undefined,
 				(event) => {
 					switch (event.type) {
+						case "status":
+							setStreamingStatus(event.payload);
+							break;
+						case "queries":
+							setStreamingStatus(
+								`Searching ${event.payload.length} queries...`
+							);
+							break;
 						case "sources":
 							setStreamingSources(event.payload);
+							setStreamingStatus(
+								`Found ${event.payload.length} chunks, generating answer...`
+							);
 							break;
 						case "token":
+							setStreamingStatus(null);
 							fullContent += event.payload;
 							setStreamingContent(fullContent);
 							break;
@@ -198,6 +212,7 @@ export function GeneralChat({ orgId }: GeneralChatProps) {
 							setMessages((prev) => [...prev, assistantMessage]);
 							setStreamingContent("");
 							setStreamingSources([]);
+							setStreamingStatus(null);
 
 							// Update active conversation
 							if (event.payload.conversation_id && !activeConversation) {
@@ -206,6 +221,7 @@ export function GeneralChat({ orgId }: GeneralChatProps) {
 							}
 							break;
 						case "error":
+							setStreamingStatus(null);
 							toast({
 								title: "Error",
 								description: event.payload,
@@ -378,6 +394,13 @@ export function GeneralChat({ orgId }: GeneralChatProps) {
 							{isStreaming && (
 								<div className='flex justify-start'>
 									<div className='max-w-[80%] rounded-lg p-3 bg-muted'>
+										{/* Status indicator */}
+										{streamingStatus && (
+											<div className='mb-2 flex items-center gap-2 text-xs text-muted-foreground'>
+												<Loader2 className='h-3 w-3 animate-spin' />
+												{streamingStatus}
+											</div>
+										)}
 										{streamingSources.length > 0 && (
 											<div className='mb-3 flex flex-wrap gap-2'>
 												{streamingSources.map((source, i) => (
@@ -393,7 +416,7 @@ export function GeneralChat({ orgId }: GeneralChatProps) {
 										)}
 										<p className='text-sm whitespace-pre-wrap'>
 											{streamingContent}
-											{!streamingContent && (
+											{!streamingContent && !streamingStatus && (
 												<Loader2 className='h-4 w-4 animate-spin' />
 											)}
 										</p>
