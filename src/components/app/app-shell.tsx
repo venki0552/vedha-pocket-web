@@ -356,8 +356,8 @@ export function AppShell({ user, orgs, children }: AppShellProps) {
 				)}
 
 				{/* Main Content */}
-				<main className='flex-1 overflow-auto'>
-					<div className='container py-6 max-w-7xl'>{children}</div>
+				<main className='flex-1 overflow-hidden'>
+					<div className='h-full px-6 py-4 max-w-7xl mx-auto'>{children}</div>
 				</main>
 			</div>
 		</div>
