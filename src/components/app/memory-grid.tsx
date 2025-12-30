@@ -231,21 +231,29 @@ export function MemoryGrid({
 				)}
 
 				{/* Footer */}
-				<div className='flex items-center justify-between mt-3 text-xs text-muted-foreground'>
+				<div className='flex items-center justify-between mt-auto pt-3 border-t border-border/50'>
 					<span
 						title={format(new Date(memory.updated_at), "PPpp")}
-						className='hover:underline cursor-help'
+						className='text-xs text-muted-foreground hover:text-foreground cursor-help transition-colors'
 					>
 						{formatDistanceToNow(new Date(memory.updated_at), {
 							addSuffix: true,
 						})}
 					</span>
-					<div className='flex items-center gap-1.5'>
-						{memory.is_pinned && <Pin className='h-3.5 w-3.5 fill-current' />}
+					<div className='flex items-center gap-2'>
+						{memory.is_pinned && (
+							<Pin className='h-3.5 w-3.5 text-muted-foreground fill-current' />
+						)}
 						{memory.status === "published" ? (
-							<Globe className='h-3.5 w-3.5 text-primary' />
+							<div className='flex items-center gap-1 text-primary'>
+								<Globe className='h-3.5 w-3.5' />
+								<span className='text-xs font-medium'>Published</span>
+							</div>
 						) : (
-							<FileEdit className='h-3.5 w-3.5' />
+							<div className='flex items-center gap-1 text-muted-foreground'>
+								<FileEdit className='h-3.5 w-3.5' />
+								<span className='text-xs'>Draft</span>
+							</div>
 						)}
 					</div>
 				</div>
