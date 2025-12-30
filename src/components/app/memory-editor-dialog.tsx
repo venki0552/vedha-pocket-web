@@ -2,7 +2,16 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { X, Globe, FileEdit, Palette, Tag, Loader2, Check } from "lucide-react";
+import {
+	X,
+	Globe,
+	FileEdit,
+	Palette,
+	Tag,
+	Loader2,
+	Check,
+	Save,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -254,11 +263,11 @@ export function MemoryEditorDialog({
 		<Dialog open={open} onOpenChange={onClose}>
 			<DialogContent
 				className={cn(
-					"sm:max-w-4xl max-h-[85vh] h-[85vh] overflow-hidden flex flex-col",
+					"sm:max-w-4xl max-h-[90vh] h-[90vh] overflow-hidden flex flex-col p-0",
 					colorClasses[color]
 				)}
 			>
-				<DialogHeader className='flex flex-row items-center justify-between'>
+				<DialogHeader className='flex flex-row items-center justify-between px-6 py-4 border-b'>
 					<DialogTitle className='text-lg font-medium'>
 						{memory
 							? viewMode === "view"
@@ -278,33 +287,34 @@ export function MemoryEditorDialog({
 							</Button>
 						)}
 						{isPublished ? (
-							<Badge variant='default'>
-								<Globe className='h-3 w-3 mr-1' />
-								Published
-							</Badge>
+							<div className='flex items-center gap-1 text-primary'>
+								<Globe className='h-4 w-4' />
+								<span className='text-sm font-medium'>Published</span>
+							</div>
 						) : (
-							<Badge variant='outline'>
-								<FileEdit className='h-3 w-3 mr-1' />
-								Draft
-							</Badge>
+							<div className='flex items-center gap-1 text-muted-foreground'>
+								<FileEdit className='h-4 w-4' />
+								<span className='text-sm'>Draft</span>
+							</div>
 						)}
 					</div>
 				</DialogHeader>
 
 				{viewMode === "view" && memory ? (
 					/* View Mode - Rendered HTML */
-					<div className='flex-1 overflow-y-auto space-y-4 pr-2'>
+					<div className='flex-1 overflow-y-auto px-6 py-4'>
 						{/* Rendered content */}
 						<div
-							className='prose prose-sm dark:prose-invert max-w-none min-h-[200px]'
+							className='prose prose-sm dark:prose-invert max-w-none min-h-[200px] [&_ul[data-type=taskList]]:list-none [&_ul[data-type=taskList]]:pl-0 [&_ul[data-type=taskList]_li]:flex [&_ul[data-type=taskList]_li]:items-start [&_ul[data-type=taskList]_li]:gap-2 [&_ul[data-type=taskList]_li_label]:mt-0.5 [&_ul[data-type=taskList]_li>div]:flex-1 [&_ul[data-type=taskList]_li[data-checked=true]>div]:line-through [&_ul[data-type=taskList]_li[data-checked=true]>div]:opacity-60'
 							dangerouslySetInnerHTML={{
 								__html: memory.content_html || memory.content,
 							}}
 						/>
 
-						{/* Tags */}
+						{/* Tags at bottom */}
 						{memory.tags.length > 0 && (
-							<div className='flex flex-wrap gap-2 pt-4 border-t'>
+							<div className='flex flex-wrap gap-2 pt-6 mt-6 border-t'>
+								<Tag className='h-4 w-4 text-muted-foreground' />
 								{memory.tags.map((tag) => (
 									<Badge key={tag} variant='secondary'>
 										{tag}
@@ -315,56 +325,67 @@ export function MemoryEditorDialog({
 					</div>
 				) : (
 					/* Edit Mode */
-					<div className='flex-1 overflow-y-auto space-y-4 pr-2'>
+					<div className='flex-1 overflow-y-auto px-6 py-4 flex flex-col gap-4'>
 						{/* Title */}
 						<Input
 							placeholder='Title'
 							value={title}
 							onChange={(e) => setTitle(e.target.value)}
-							className='text-lg font-medium border-0 bg-transparent focus-visible:ring-0 px-0'
+							className='text-xl font-medium border-0 bg-transparent focus-visible:ring-0 px-0 h-auto'
 						/>
 
 						{/* Content - Tiptap Editor */}
-						<TiptapEditor
-							content={contentHtml || content}
-							onChange={(text, html) => {
-								setContent(text);
-								setContentHtml(html);
-							}}
-							className='border-0 bg-transparent min-h-[300px]'
-						/>
+						<div className='flex-1 min-h-[300px]'>
+							<TiptapEditor
+								content={contentHtml || content}
+								onChange={(text, html) => {
+									setContent(text);
+									setContentHtml(html);
+								}}
+								className='h-full'
+							/>
+						</div>
 
-						{/* Tags */}
-						<div className='space-y-2'>
+						{/* Tags at bottom of edit area */}
+						<div className='pt-4 border-t space-y-3'>
+							<div className='flex items-center gap-2'>
+								<Tag className='h-4 w-4 text-muted-foreground' />
+								<span className='text-sm text-muted-foreground'>Tags</span>
+							</div>
 							<div className='flex flex-wrap gap-2'>
 								{tags.map((tag) => (
-									<Badge key={tag} variant='secondary' className='gap-1'>
+									<Badge key={tag} variant='secondary' className='gap-1 pr-1'>
 										{tag}
 										<button
 											onClick={() => removeTag(tag)}
-											className='ml-1 hover:text-destructive'
+											className='ml-1 hover:bg-destructive hover:text-destructive-foreground rounded-full p-0.5'
 										>
 											<X className='h-3 w-3' />
 										</button>
 									</Badge>
 								))}
-							</div>
-							<div className='flex gap-2'>
-								<Input
-									placeholder='Add tag...'
-									value={tagInput}
-									onChange={(e) => setTagInput(e.target.value)}
-									onKeyDown={(e) => {
-										if (e.key === "Enter") {
-											e.preventDefault();
-											addTag();
-										}
-									}}
-									className='max-w-[200px]'
-								/>
-								<Button variant='outline' size='sm' onClick={addTag}>
-									<Tag className='h-4 w-4' />
-								</Button>
+								<div className='flex gap-2'>
+									<Input
+										placeholder='Add tag...'
+										value={tagInput}
+										onChange={(e) => setTagInput(e.target.value)}
+										onKeyDown={(e) => {
+											if (e.key === "Enter") {
+												e.preventDefault();
+												addTag();
+											}
+										}}
+										className='h-8 w-32'
+									/>
+									<Button
+										variant='ghost'
+										size='sm'
+										onClick={addTag}
+										className='h-8'
+									>
+										Add
+									</Button>
+								</div>
 							</div>
 						</div>
 					</div>
@@ -372,13 +393,13 @@ export function MemoryEditorDialog({
 
 				{/* Footer */}
 				{viewMode === "view" ? (
-					<div className='flex items-center justify-end pt-4 border-t'>
+					<div className='flex items-center justify-end px-6 py-4 border-t bg-muted/30'>
 						<Button variant='outline' onClick={onClose}>
 							Close
 						</Button>
 					</div>
 				) : (
-					<div className='flex items-center justify-between pt-4 border-t'>
+					<div className='flex items-center justify-between px-6 py-4 border-t bg-muted/30'>
 						<div className='flex items-center gap-2'>
 							{/* Color picker */}
 							<Popover>
@@ -422,7 +443,9 @@ export function MemoryEditorDialog({
 							>
 								{isSaving ? (
 									<Loader2 className='h-4 w-4 mr-2 animate-spin' />
-								) : null}
+								) : (
+									<Save className='h-4 w-4 mr-2' />
+								)}
 								Save Draft
 							</Button>
 							{!isPublished && (

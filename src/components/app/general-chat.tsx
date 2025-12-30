@@ -10,6 +10,9 @@ import {
 	Sparkles,
 	Trash2,
 	ChevronRight,
+	ChevronDown,
+	Plus,
+	History,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -75,10 +78,25 @@ export function GeneralChat({ orgId }: GeneralChatProps) {
 	const [isStreaming, setIsStreaming] = useState(false);
 	const [streamingContent, setStreamingContent] = useState("");
 	const [streamingSources, setStreamingSources] = useState<any[]>([]);
+	const [showHistory, setShowHistory] = useState(false);
 
-	// Load conversations on mount
+	// Load conversations on mount and auto-select last one
 	useEffect(() => {
-		loadConversations();
+		const initConversations = async () => {
+			try {
+				const { data } = await api.listGeneralConversations(orgId);
+				setConversations(data || []);
+				// Auto-load the most recent conversation
+				if (data && data.length > 0 && !activeConversation) {
+					setActiveConversation(data[0].id);
+					const { data: msgs } = await api.getGeneralConversation(data[0].id);
+					setMessages(msgs || []);
+				}
+			} catch (error) {
+				console.error("Failed to load conversations:", error);
+			}
+		};
+		initConversations();
 	}, [orgId]);
 
 	// Scroll to bottom when messages change
@@ -210,65 +228,88 @@ export function GeneralChat({ orgId }: GeneralChatProps) {
 	};
 
 	return (
-		<div className='flex gap-6 h-[calc(100vh-16rem)]'>
-			{/* Conversation sidebar */}
-			<div className='w-64 flex-shrink-0 border rounded-lg hidden lg:block'>
-				<div className='p-3 border-b'>
-					<Button
-						onClick={handleNewConversation}
-						className='w-full'
-						variant='outline'
-					>
-						<MessageSquare className='h-4 w-4 mr-2' />
+		<div className='flex flex-col h-[calc(100vh-16rem)]'>
+			{/* Chat area */}
+			<div className='flex-1 flex flex-col border rounded-lg'>
+				{/* Chat header with history toggle */}
+				<div className='flex items-center justify-between p-3 border-b'>
+					<div className='flex items-center gap-2'>
+						<Button
+							variant='ghost'
+							size='sm'
+							onClick={() => setShowHistory(!showHistory)}
+							className='gap-1'
+						>
+							<History className='h-4 w-4' />
+							History
+							<ChevronDown
+								className={cn(
+									"h-4 w-4 transition-transform",
+									showHistory && "rotate-180"
+								)}
+							/>
+						</Button>
+						{activeConversation && (
+							<span className='text-sm text-muted-foreground'>
+								{conversations.find((c) => c.id === activeConversation)
+									?.title || "Current chat"}
+							</span>
+						)}
+					</div>
+					<Button variant='outline' size='sm' onClick={handleNewConversation}>
+						<Plus className='h-4 w-4 mr-1' />
 						New Chat
 					</Button>
 				</div>
-				<ScrollArea className='h-[calc(100%-60px)]'>
-					<div className='p-2'>
-						{conversations.length === 0 ? (
-							<p className='text-sm text-muted-foreground text-center py-4'>
-								No conversations yet
-							</p>
-						) : (
-							conversations.map((conv) => (
-								<div
-									key={conv.id}
-									className={cn(
-										"group flex items-center justify-between p-2 rounded-lg cursor-pointer hover:bg-accent",
-										activeConversation === conv.id && "bg-accent"
-									)}
-									onClick={() => handleSelectConversation(conv.id)}
-								>
-									<div className='min-w-0 flex-1'>
-										<p className='text-sm font-medium truncate'>
-											{conv.title || "New conversation"}
-										</p>
-										<p className='text-xs text-muted-foreground'>
-											{formatDistanceToNow(new Date(conv.updated_at), {
-												addSuffix: true,
-											})}
-										</p>
-									</div>
-									<Button
-										variant='ghost'
-										size='icon'
-										className='h-8 w-8 opacity-0 group-hover:opacity-100'
-										onClick={(e) => {
-											e.stopPropagation();
-											handleDeleteConversation(conv.id);
+
+				{/* Collapsible history panel */}
+				{showHistory && (
+					<div className='border-b max-h-48 overflow-y-auto bg-muted/30'>
+						<div className='p-2 space-y-1'>
+							{conversations.length === 0 ? (
+								<p className='text-sm text-muted-foreground text-center py-4'>
+									No conversations yet
+								</p>
+							) : (
+								conversations.map((conv) => (
+									<div
+										key={conv.id}
+										className={cn(
+											"group flex items-center justify-between p-2 rounded-lg cursor-pointer hover:bg-accent",
+											activeConversation === conv.id && "bg-accent"
+										)}
+										onClick={() => {
+											handleSelectConversation(conv.id);
+											setShowHistory(false);
 										}}
 									>
-										<Trash2 className='h-4 w-4' />
-									</Button>
-								</div>
-							))
-						)}
+										<div className='min-w-0 flex-1'>
+											<p className='text-sm font-medium truncate'>
+												{conv.title || "New conversation"}
+											</p>
+											<p className='text-xs text-muted-foreground'>
+												{formatDistanceToNow(new Date(conv.updated_at), {
+													addSuffix: true,
+												})}
+											</p>
+										</div>
+										<Button
+											variant='ghost'
+											size='icon'
+											className='h-8 w-8 opacity-0 group-hover:opacity-100'
+											onClick={(e) => {
+												e.stopPropagation();
+												handleDeleteConversation(conv.id);
+											}}
+										>
+											<Trash2 className='h-4 w-4' />
+										</Button>
+									</div>
+								))
+							)}
+						</div>
 					</div>
-				</ScrollArea>
-			</div>
-
-			{/* Chat area */}
-			<div className='flex-1 flex flex-col border rounded-lg'>
+				)}
 				{/* Messages */}
 				<ScrollArea className='flex-1 p-4'>
 					{messages.length === 0 && !isStreaming ? (
@@ -378,13 +419,13 @@ export function GeneralChat({ orgId }: GeneralChatProps) {
 									handleSubmit(e);
 								}
 							}}
-							className='min-h-[60px] resize-none'
+							className='min-h-[50px] resize-none'
 							disabled={isLoading}
 						/>
 						<Button
 							type='submit'
 							size='icon'
-							className='h-[60px] w-[60px]'
+							className='h-[50px] w-[50px]'
 							disabled={isLoading || !input.trim()}
 						>
 							{isLoading ? (

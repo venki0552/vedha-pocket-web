@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, format } from "date-fns";
 import {
 	MoreVertical,
 	Pin,
@@ -11,6 +10,8 @@ import {
 	Share2,
 	Globe,
 	FileEdit,
+	ArchiveRestore,
+	ExternalLink,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -33,7 +34,11 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
-import { api } from "@/lib/api";
+import {
+	useUpdateMemory,
+	useDeleteMemory,
+	usePublishMemory,
+} from "@/hooks/use-memories";
 
 interface Memory {
 	id: string;
@@ -83,25 +88,25 @@ export function MemoryGrid({
 	orgId,
 	isArchiveView = false,
 }: MemoryGridProps) {
-	const router = useRouter();
 	const { toast } = useToast();
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 	const [memoryToDelete, setMemoryToDelete] = useState<Memory | null>(null);
-	const [isDeleting, setIsDeleting] = useState(false);
+
+	// React Query mutations
+	const updateMutation = useUpdateMemory();
+	const deleteMutation = useDeleteMemory();
+	const publishMutation = usePublishMemory();
 
 	const handleDelete = async () => {
 		if (!memoryToDelete) return;
 
-		setIsDeleting(true);
 		try {
-			await api.deleteMemory(memoryToDelete.id);
+			await deleteMutation.mutateAsync(memoryToDelete.id);
 
 			toast({
 				title: "Memory deleted",
 				description: "Your memory has been deleted.",
 			});
-
-			router.refresh();
 		} catch (error) {
 			toast({
 				title: "Error",
@@ -109,7 +114,6 @@ export function MemoryGrid({
 				variant: "destructive",
 			});
 		} finally {
-			setIsDeleting(false);
 			setDeleteDialogOpen(false);
 			setMemoryToDelete(null);
 		}
@@ -117,7 +121,10 @@ export function MemoryGrid({
 
 	const handleTogglePin = async (memory: Memory) => {
 		try {
-			await api.updateMemory(memory.id, { is_pinned: !memory.is_pinned });
+			await updateMutation.mutateAsync({
+				id: memory.id,
+				is_pinned: !memory.is_pinned,
+			});
 
 			toast({
 				title: memory.is_pinned ? "Unpinned" : "Pinned",
@@ -125,8 +132,6 @@ export function MemoryGrid({
 					? "Memory unpinned"
 					: "Memory pinned to top",
 			});
-
-			router.refresh();
 		} catch (error) {
 			toast({
 				title: "Error",
@@ -138,14 +143,15 @@ export function MemoryGrid({
 
 	const handleToggleArchive = async (memory: Memory) => {
 		try {
-			await api.updateMemory(memory.id, { is_archived: !memory.is_archived });
+			await updateMutation.mutateAsync({
+				id: memory.id,
+				is_archived: !memory.is_archived,
+			});
 
 			toast({
 				title: memory.is_archived ? "Restored" : "Archived",
 				description: memory.is_archived ? "Memory restored" : "Memory archived",
 			});
-
-			router.refresh();
 		} catch (error) {
 			toast({
 				title: "Error",
@@ -157,14 +163,12 @@ export function MemoryGrid({
 
 	const handlePublish = async (memory: Memory) => {
 		try {
-			await api.publishMemory(memory.id);
+			await publishMutation.mutateAsync(memory.id);
 
 			toast({
 				title: "Published",
 				description: "Your memory is now searchable in General Chat",
 			});
-
-			router.refresh();
 		} catch (error) {
 			toast({
 				title: "Error",
@@ -181,23 +185,30 @@ export function MemoryGrid({
 	const MemoryCard = ({ memory }: { memory: Memory }) => (
 		<div
 			className={cn(
-				"group relative rounded-lg border p-4 transition-shadow hover:shadow-md cursor-pointer",
+				"group relative rounded-lg border p-5 transition-shadow hover:shadow-md cursor-pointer min-h-[180px]",
 				colorClasses[memory.color] || colorClasses.default,
-				viewMode === "list" && "flex items-center gap-4"
+				viewMode === "list" && "flex items-center gap-4 min-h-0"
 			)}
 			onClick={() => onEdit(memory)}
 		>
-			{/* Pin indicator */}
-			{memory.is_pinned && (
-				<Pin className='absolute top-2 right-2 h-4 w-4 text-muted-foreground fill-current' />
-			)}
+			{/* Status icons - top right */}
+			<div className='absolute top-3 right-10 flex items-center gap-1.5'>
+				{memory.is_pinned && (
+					<Pin className='h-4 w-4 text-muted-foreground fill-current' />
+				)}
+				{memory.status === "published" && (
+					<Globe className='h-4 w-4 text-primary' />
+				)}
+			</div>
 
 			{/* Content */}
-			<div className={cn("flex-1", viewMode === "list" && "min-w-0")}>
+			<div
+				className={cn("flex-1 flex flex-col", viewMode === "list" && "min-w-0")}
+			>
 				{memory.title && (
 					<h3
 						className={cn(
-							"font-medium line-clamp-1",
+							"font-semibold text-base line-clamp-1",
 							viewMode === "grid" && "mb-2"
 						)}
 					>
@@ -206,8 +217,8 @@ export function MemoryGrid({
 				)}
 				<p
 					className={cn(
-						"text-sm text-muted-foreground",
-						viewMode === "grid" ? "line-clamp-4" : "line-clamp-1"
+						"text-sm text-muted-foreground flex-1",
+						viewMode === "grid" ? "line-clamp-5" : "line-clamp-1"
 					)}
 				>
 					{memory.content || "Empty memory"}
@@ -231,23 +242,16 @@ export function MemoryGrid({
 
 				{/* Footer */}
 				<div className='flex items-center justify-between mt-3 text-xs text-muted-foreground'>
-					<span>
+					<span
+						title={format(new Date(memory.updated_at), "PPpp")}
+						className='hover:underline cursor-help'
+					>
 						{formatDistanceToNow(new Date(memory.updated_at), {
 							addSuffix: true,
 						})}
 					</span>
-					<div className='flex items-center gap-1'>
-						{memory.status === "published" ? (
-							<Badge variant='default' className='text-xs'>
-								<Globe className='h-3 w-3 mr-1' />
-								Published
-							</Badge>
-						) : (
-							<Badge variant='outline' className='text-xs'>
-								<FileEdit className='h-3 w-3 mr-1' />
-								Draft
-							</Badge>
-						)}
+					<div className='flex items-center gap-1.5'>
+						{memory.status === "draft" && <FileEdit className='h-3.5 w-3.5' />}
 					</div>
 				</div>
 			</div>
@@ -280,8 +284,17 @@ export function MemoryGrid({
 						</DropdownMenuItem>
 						<DropdownMenuSeparator />
 						<DropdownMenuItem onClick={() => handleToggleArchive(memory)}>
-							<Archive className='mr-2 h-4 w-4' />
-							{memory.is_archived ? "Restore" : "Archive"}
+							{memory.is_archived ? (
+								<>
+									<ArchiveRestore className='mr-2 h-4 w-4' />
+									Restore
+								</>
+							) : (
+								<>
+									<Archive className='mr-2 h-4 w-4' />
+									Archive
+								</>
+							)}
 						</DropdownMenuItem>
 						<DropdownMenuItem
 							className='text-destructive'
@@ -311,7 +324,7 @@ export function MemoryGrid({
 					<div
 						className={cn(
 							viewMode === "grid"
-								? "grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+								? "grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3"
 								: "flex flex-col gap-2"
 						)}
 					>
@@ -333,7 +346,7 @@ export function MemoryGrid({
 					<div
 						className={cn(
 							viewMode === "grid"
-								? "grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+								? "grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3"
 								: "flex flex-col gap-2"
 						)}
 					>
@@ -358,10 +371,10 @@ export function MemoryGrid({
 						<AlertDialogCancel>Cancel</AlertDialogCancel>
 						<AlertDialogAction
 							onClick={handleDelete}
-							disabled={isDeleting}
+							disabled={deleteMutation.isPending}
 							className='bg-destructive text-destructive-foreground hover:bg-destructive/90'
 						>
-							{isDeleting ? "Deleting..." : "Delete"}
+							{deleteMutation.isPending ? "Deleting..." : "Delete"}
 						</AlertDialogAction>
 					</AlertDialogFooter>
 				</AlertDialogContent>
