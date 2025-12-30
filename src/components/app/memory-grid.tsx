@@ -185,15 +185,18 @@ export function MemoryGrid({
 	const MemoryCard = ({ memory }: { memory: Memory }) => (
 		<div
 			className={cn(
-				"group relative rounded-lg border p-5 transition-shadow hover:shadow-md cursor-pointer min-h-[180px]",
+				"group relative rounded-lg border p-5 transition-shadow hover:shadow-md cursor-pointer min-h-[180px] flex flex-col",
 				colorClasses[memory.color] || colorClasses.default,
-				viewMode === "list" && "flex items-center gap-4 min-h-0"
+				viewMode === "list" && "flex-row items-center gap-4 min-h-0"
 			)}
 			onClick={() => onEdit(memory)}
 		>
 			{/* Content */}
 			<div
-				className={cn("flex-1 flex flex-col", viewMode === "list" && "min-w-0")}
+				className={cn(
+					"flex-1 flex flex-col min-h-0",
+					viewMode === "list" && "min-w-0"
+				)}
 			>
 				{memory.title && (
 					<h3
@@ -207,7 +210,7 @@ export function MemoryGrid({
 				)}
 				<p
 					className={cn(
-						"text-sm text-muted-foreground flex-1",
+						"text-sm text-muted-foreground",
 						viewMode === "grid" ? "line-clamp-5" : "line-clamp-1"
 					)}
 				>
@@ -229,33 +232,33 @@ export function MemoryGrid({
 						)}
 					</div>
 				)}
+			</div>
 
-				{/* Footer */}
-				<div className='flex items-center justify-between mt-auto pt-3 border-t border-border/50'>
-					<span
-						title={format(new Date(memory.updated_at), "PPpp")}
-						className='text-xs text-muted-foreground hover:text-foreground cursor-help transition-colors'
-					>
-						{formatDistanceToNow(new Date(memory.updated_at), {
-							addSuffix: true,
-						})}
-					</span>
-					<div className='flex items-center gap-2'>
-						{memory.is_pinned && (
-							<Pin className='h-3.5 w-3.5 text-muted-foreground fill-current' />
-						)}
-						{memory.status === "published" ? (
-							<div className='flex items-center gap-1 text-primary'>
-								<Globe className='h-3.5 w-3.5' />
-								<span className='text-xs font-medium'>Published</span>
-							</div>
-						) : (
-							<div className='flex items-center gap-1 text-muted-foreground'>
-								<FileEdit className='h-3.5 w-3.5' />
-								<span className='text-xs'>Draft</span>
-							</div>
-						)}
-					</div>
+			{/* Footer - always at bottom */}
+			<div className='flex items-center justify-between mt-auto pt-3'>
+				<span
+					title={format(new Date(memory.updated_at), "PPpp")}
+					className='text-xs text-muted-foreground hover:text-foreground cursor-help transition-colors'
+				>
+					{formatDistanceToNow(new Date(memory.updated_at), {
+						addSuffix: true,
+					})}
+				</span>
+				<div className='flex items-center gap-2'>
+					{memory.is_pinned && (
+						<Pin className='h-3.5 w-3.5 text-muted-foreground fill-current' />
+					)}
+					{memory.status === "published" ? (
+						<div className='flex items-center gap-1 text-primary'>
+							<Globe className='h-3.5 w-3.5' />
+							<span className='text-xs font-medium'>Published</span>
+						</div>
+					) : (
+						<div className='flex items-center gap-1 text-muted-foreground'>
+							<FileEdit className='h-3.5 w-3.5' />
+							<span className='text-xs'>Draft</span>
+						</div>
+					)}
 				</div>
 			</div>
 
