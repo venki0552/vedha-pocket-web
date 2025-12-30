@@ -91,9 +91,9 @@ export function MemoriesView({ orgId }: MemoriesViewProps) {
 	};
 
 	return (
-		<div className='flex h-full gap-6'>
+		<div className='flex h-full gap-6 overflow-hidden'>
 			{/* Left side - Memories (60%) */}
-			<div className='w-[60%] flex flex-col min-h-0'>
+			<div className='w-[60%] flex flex-col min-h-0 overflow-hidden'>
 				{/* Header */}
 				<div className='flex items-center justify-between gap-4 flex-wrap mb-4 flex-shrink-0'>
 					<div className='flex items-center gap-2'>
@@ -236,14 +236,12 @@ export function MemoriesView({ orgId }: MemoriesViewProps) {
 			</div>
 
 			{/* Right side - Chat (40%) */}
-			<div className='w-[40%] border-l pl-6 flex flex-col min-h-0'>
+			<div className='w-[40%] border-l pl-6 flex flex-col min-h-0 overflow-hidden'>
 				<h2 className='text-lg font-semibold mb-4 flex items-center gap-2 flex-shrink-0'>
 					<Search className='h-5 w-5' />
 					General Chat
 				</h2>
-				<div className='flex-1 min-h-0'>
-					<GeneralChat orgId={orgId} />
-				</div>
+				<GeneralChat orgId={orgId} />
 			</div>
 
 			{/* Memory Editor Dialog */}

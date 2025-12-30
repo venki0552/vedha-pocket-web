@@ -228,7 +228,7 @@ export function GeneralChat({ orgId }: GeneralChatProps) {
 	};
 
 	return (
-		<div className='flex flex-col h-full'>
+		<div className='flex flex-col flex-1 min-h-0 overflow-hidden'>
 			{/* Chat area */}
 			<div className='flex-1 flex flex-col border rounded-lg overflow-hidden min-h-0'>
 				{/* Chat header with history toggle - sticky */}
