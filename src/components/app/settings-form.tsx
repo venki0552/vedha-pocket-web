@@ -23,7 +23,14 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { toast } from "@/components/ui/use-toast";
-import { Loader2, Key, Palette, User as UserIcon, ExternalLink, Check } from "lucide-react";
+import {
+	Loader2,
+	Key,
+	Palette,
+	User as UserIcon,
+	ExternalLink,
+	Check,
+} from "lucide-react";
 
 interface UserSettings {
 	theme: "light" | "dark" | "system";
@@ -42,7 +49,6 @@ export function SettingsForm({
 	const router = useRouter();
 	const [settings, setSettings] = useState(initialSettings);
 	const [apiKey, setApiKey] = useState("");
-	const [showApiKey, setShowApiKey] = useState(false);
 
 	const updateSettingsMutation = useMutation({
 		mutationFn: (
@@ -101,7 +107,6 @@ export function SettingsForm({
 			openrouter_api_key: apiKey,
 		});
 		setApiKey("");
-		setShowApiKey(false);
 	};
 
 	const handleRemoveApiKey = () => {
@@ -175,73 +180,72 @@ export function SettingsForm({
 				</CardHeader>
 				<CardContent className='space-y-4'>
 					{settings.openrouter_api_key_encrypted ? (
-						<div className='rounded-lg border border-green-500/50 bg-green-50 p-4 dark:bg-green-950/20'>
-							<div className='flex items-center gap-2 text-green-700 dark:text-green-400'>
-								<Check className='h-5 w-5' />
-								<span className='font-medium'>API Key Configured</span>
+						<>
+							<div className='rounded-lg border border-green-500/50 bg-green-50 p-4 dark:bg-green-950/20'>
+								<div className='flex items-center gap-2 text-green-700 dark:text-green-400'>
+									<Check className='h-5 w-5' />
+									<span className='font-medium'>API Key Configured</span>
+								</div>
+								<p className='mt-1 text-sm text-muted-foreground'>
+									Your OpenRouter API key is securely stored and encrypted.
+								</p>
 							</div>
-							<p className='mt-1 text-sm text-muted-foreground'>
-								Your OpenRouter API key is securely stored and encrypted.
-							</p>
-						</div>
-					) : (
-						<div className='rounded-lg border border-amber-500/50 bg-amber-50 p-4 dark:bg-amber-950/20'>
-							<p className='text-sm text-amber-700 dark:text-amber-400'>
-								No API key configured. Add your OpenRouter API key to use chat features.
-							</p>
-						</div>
-					)}
-
-					<div className='grid gap-2'>
-						<Label>{settings.openrouter_api_key_encrypted ? "Update API Key" : "API Key"}</Label>
-						<div className='flex gap-2'>
-							<Input
-								type={showApiKey ? "text" : "password"}
-								placeholder='sk-or-v1-...'
-								value={apiKey}
-								onChange={(e) => setApiKey(e.target.value)}
-							/>
-							<Button
-								variant='outline'
-								onClick={() => setShowApiKey(!showApiKey)}
-							>
-								{showApiKey ? "Hide" : "Show"}
-							</Button>
-						</div>
-						<p className='text-xs text-muted-foreground'>
-							Get your API key from{" "}
-							<a
-								href='https://openrouter.ai/keys'
-								target='_blank'
-								rel='noopener noreferrer'
-								className='inline-flex items-center gap-1 text-primary hover:underline'
-							>
-								openrouter.ai/keys
-								<ExternalLink className='h-3 w-3' />
-							</a>
-							. Your key is encrypted before storage.
-						</p>
-					</div>
-					<div className='flex gap-2'>
-						<Button
-							onClick={handleSaveApiKey}
-							disabled={updateSettingsMutation.isPending || !apiKey.trim()}
-						>
-							{updateSettingsMutation.isPending && (
-								<Loader2 className='mr-2 h-4 w-4 animate-spin' />
-							)}
-							{settings.openrouter_api_key_encrypted ? "Update API Key" : "Save API Key"}
-						</Button>
-						{settings.openrouter_api_key_encrypted && (
 							<Button
 								variant='outline'
 								onClick={handleRemoveApiKey}
 								disabled={updateSettingsMutation.isPending}
 							>
-								Remove Key
+								{updateSettingsMutation.isPending && (
+									<Loader2 className='mr-2 h-4 w-4 animate-spin' />
+								)}
+								Remove API Key
 							</Button>
-						)}
-					</div>
+						</>
+					) : (
+						<>
+							<div className='rounded-lg border border-amber-500/50 bg-amber-50 p-4 dark:bg-amber-950/20'>
+								<p className='text-sm text-amber-700 dark:text-amber-400'>
+									No API key configured. Add your OpenRouter API key to use chat
+									features.
+								</p>
+							</div>
+							<div className='grid gap-2'>
+								<Label>API Key</Label>
+								<Input
+									type='text'
+									autoComplete='off'
+									data-lpignore='true'
+									data-form-type='other'
+									placeholder='sk-or-v1-...'
+									value={apiKey}
+									onChange={(e) => setApiKey(e.target.value)}
+									className='font-mono'
+								/>
+								<p className='text-xs text-muted-foreground'>
+									Get your API key from{" "}
+									<a
+										href='https://openrouter.ai/keys'
+										target='_blank'
+										rel='noopener noreferrer'
+										className='inline-flex items-center gap-1 text-primary hover:underline'
+									>
+										openrouter.ai/keys
+										<ExternalLink className='h-3 w-3' />
+									</a>
+									. Your key is encrypted before storage.
+								</p>
+							</div>
+							<Button
+								onClick={handleSaveApiKey}
+								disabled={updateSettingsMutation.isPending || !apiKey.trim()}
+							>
+								{updateSettingsMutation.isPending && (
+									<Loader2 className='mr-2 h-4 w-4 animate-spin' />
+								)}
+								Save API Key
+							</Button>
+						</>
+					)}
 				</CardContent>
 			</Card>
 
