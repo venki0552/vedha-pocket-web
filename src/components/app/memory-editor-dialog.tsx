@@ -290,23 +290,52 @@ export function MemoryEditorDialog({
 								Edit
 							</Button>
 						)}
-						{isPublished ? (
-							<div className='flex items-center gap-1 text-primary'>
-								<Globe className='h-4 w-4' />
-								<span className='text-sm font-medium'>Published</span>
-							</div>
-						) : (
-							<div className='flex items-center gap-1 text-muted-foreground'>
-								<FileEdit className='h-4 w-4' />
-								<span className='text-sm'>Draft</span>
-							</div>
-						)}
+						{viewMode === "edit" &&
+							(isPublished ? (
+								<div className='flex items-center gap-1 text-primary'>
+									<Globe className='h-4 w-4' />
+									<span className='text-sm font-medium'>Published</span>
+								</div>
+							) : (
+								<div className='flex items-center gap-1 text-muted-foreground'>
+									<FileEdit className='h-4 w-4' />
+									<span className='text-sm'>Draft</span>
+								</div>
+							))}
 					</div>
 				</DialogHeader>
 
 				{viewMode === "view" && memory ? (
 					/* View Mode - Rendered HTML */
 					<div className='flex-1 overflow-y-auto px-6 py-4'>
+						{/* Status and tags below title */}
+						<div className='flex flex-wrap items-center gap-3 mb-4 pb-4 border-b'>
+							{/* Status icon */}
+							{memory.status === "published" ? (
+								<div className='flex items-center gap-1.5 text-primary'>
+									<Globe className='h-4 w-4' />
+									<span className='text-sm font-medium'>Published</span>
+								</div>
+							) : (
+								<div className='flex items-center gap-1.5 text-muted-foreground'>
+									<FileEdit className='h-4 w-4' />
+									<span className='text-sm'>Draft</span>
+								</div>
+							)}
+
+							{/* Tags */}
+							{memory.tags.length > 0 && (
+								<>
+									<span className='text-muted-foreground'>•</span>
+									{memory.tags.map((tag) => (
+										<Badge key={tag} variant='secondary' className='text-xs'>
+											{tag}
+										</Badge>
+									))}
+								</>
+							)}
+						</div>
+
 						{/* Rendered content */}
 						<div
 							className='prose prose-sm dark:prose-invert max-w-none min-h-[200px] [&_ul[data-type=taskList]]:list-none [&_ul[data-type=taskList]]:pl-0 [&_ul[data-type=taskList]_li]:flex [&_ul[data-type=taskList]_li]:items-start [&_ul[data-type=taskList]_li]:gap-2 [&_ul[data-type=taskList]_li_label]:mt-0.5 [&_ul[data-type=taskList]_li>div]:flex-1 [&_ul[data-type=taskList]_li[data-checked=true]>div]:line-through [&_ul[data-type=taskList]_li[data-checked=true]>div]:opacity-60'
@@ -314,18 +343,6 @@ export function MemoryEditorDialog({
 								__html: memory.content_html || memory.content,
 							}}
 						/>
-
-						{/* Tags at bottom */}
-						{memory.tags.length > 0 && (
-							<div className='flex flex-wrap gap-2 pt-6 mt-6 border-t'>
-								<Tag className='h-4 w-4 text-muted-foreground' />
-								{memory.tags.map((tag) => (
-									<Badge key={tag} variant='secondary'>
-										{tag}
-									</Badge>
-								))}
-							</div>
-						)}
 					</div>
 				) : (
 					/* Edit Mode */
