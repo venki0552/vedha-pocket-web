@@ -44,6 +44,7 @@ interface MemoryEditorDialogProps {
 	onClose: () => void;
 	memory: Memory | null;
 	orgId: string;
+	initialViewMode?: "view" | "edit";
 }
 
 // Google Keep colors
@@ -82,9 +83,11 @@ export function MemoryEditorDialog({
 	onClose,
 	memory,
 	orgId,
+	initialViewMode = "edit",
 }: MemoryEditorDialogProps) {
 	const router = useRouter();
 	const { toast } = useToast();
+	const [viewMode, setViewMode] = useState<"view" | "edit">(initialViewMode);
 	const [title, setTitle] = useState("");
 	const [content, setContent] = useState("");
 	const [contentHtml, setContentHtml] = useState("");
@@ -95,6 +98,10 @@ export function MemoryEditorDialog({
 	const [isPublishing, setIsPublishing] = useState(false);
 
 	// Reset form when memory changes
+	useEffect(() => {
+		setViewMode(initialViewMode);
+	}, [initialViewMode, open]);
+
 	useEffect(() => {
 		if (memory) {
 			setTitle(memory.title || "");
@@ -247,15 +254,21 @@ export function MemoryEditorDialog({
 		<Dialog open={open} onOpenChange={onClose}>
 			<DialogContent
 				className={cn(
-					"sm:max-w-2xl max-h-[90vh] overflow-hidden flex flex-col",
+					"sm:max-w-4xl max-h-[85vh] h-[85vh] overflow-hidden flex flex-col",
 					colorClasses[color]
 				)}
 			>
 				<DialogHeader className='flex flex-row items-center justify-between'>
 					<DialogTitle className='text-lg font-medium'>
-						{memory ? "Edit Memory" : "New Memory"}
+						{memory ? (viewMode === "view" ? memory.title || "Untitled Memory" : "Edit Memory") : "New Memory"}
 					</DialogTitle>
 					<div className='flex items-center gap-2'>
+						{viewMode === "view" && memory && (
+							<Button variant='outline' size='sm' onClick={() => setViewMode("edit")}>
+								<FileEdit className='h-4 w-4 mr-2' />
+								Edit
+							</Button>
+						)}
 						{isPublished ? (
 							<Badge variant='default'>
 								<Globe className='h-3 w-3 mr-1' />
@@ -270,47 +283,69 @@ export function MemoryEditorDialog({
 					</div>
 				</DialogHeader>
 
-				<div className='flex-1 overflow-y-auto space-y-4'>
-					{/* Title */}
-					<Input
-						placeholder='Title'
-						value={title}
-						onChange={(e) => setTitle(e.target.value)}
-						className='text-lg font-medium border-0 bg-transparent focus-visible:ring-0 px-0'
-					/>
+				{viewMode === "view" && memory ? (
+					/* View Mode - Rendered HTML */
+					<div className='flex-1 overflow-y-auto space-y-4 pr-2'>
+						{/* Rendered content */}
+						<div 
+							className='prose prose-sm dark:prose-invert max-w-none min-h-[200px]'
+							dangerouslySetInnerHTML={{ __html: memory.content_html || memory.content }}
+						/>
 
-					{/* Content - Tiptap Editor */}
-					<TiptapEditor
-						content={contentHtml || content}
-						onChange={(text, html) => {
-							setContent(text);
-							setContentHtml(html);
-						}}
-						className='border-0 bg-transparent'
-					/>
+						{/* Tags */}
+						{memory.tags.length > 0 && (
+							<div className='flex flex-wrap gap-2 pt-4 border-t'>
+								{memory.tags.map((tag) => (
+									<Badge key={tag} variant='secondary'>
+										{tag}
+									</Badge>
+								))}
+							</div>
+						)}
+					</div>
+				) : (
+					/* Edit Mode */
+					<div className='flex-1 overflow-y-auto space-y-4 pr-2'>
+						{/* Title */}
+						<Input
+							placeholder='Title'
+							value={title}
+							onChange={(e) => setTitle(e.target.value)}
+							className='text-lg font-medium border-0 bg-transparent focus-visible:ring-0 px-0'
+						/>
 
-					{/* Tags */}
-					<div className='space-y-2'>
-						<div className='flex flex-wrap gap-2'>
-							{tags.map((tag) => (
-								<Badge key={tag} variant='secondary' className='gap-1'>
-									{tag}
-									<button
-										onClick={() => removeTag(tag)}
-										className='ml-1 hover:text-destructive'
-									>
-										<X className='h-3 w-3' />
-									</button>
-								</Badge>
-							))}
-						</div>
-						<div className='flex gap-2'>
-							<Input
-								placeholder='Add tag...'
-								value={tagInput}
-								onChange={(e) => setTagInput(e.target.value)}
-								onKeyDown={(e) => {
-									if (e.key === "Enter") {
+						{/* Content - Tiptap Editor */}
+						<TiptapEditor
+							content={contentHtml || content}
+							onChange={(text, html) => {
+								setContent(text);
+								setContentHtml(html);
+							}}
+							className='border-0 bg-transparent min-h-[300px]'
+						/>
+
+						{/* Tags */}
+						<div className='space-y-2'>
+							<div className='flex flex-wrap gap-2'>
+								{tags.map((tag) => (
+									<Badge key={tag} variant='secondary' className='gap-1'>
+										{tag}
+										<button
+											onClick={() => removeTag(tag)}
+											className='ml-1 hover:text-destructive'
+										>
+											<X className='h-3 w-3' />
+										</button>
+									</Badge>
+								))}
+							</div>
+							<div className='flex gap-2'>
+								<Input
+									placeholder='Add tag...'
+									value={tagInput}
+									onChange={(e) => setTagInput(e.target.value)}
+									onKeyDown={(e) => {
+										if (e.key === "Enter") {
 										e.preventDefault();
 										addTag();
 									}
@@ -323,8 +358,16 @@ export function MemoryEditorDialog({
 						</div>
 					</div>
 				</div>
+				)}
 
 				{/* Footer */}
+				{viewMode === "view" ? (
+					<div className='flex items-center justify-end pt-4 border-t'>
+						<Button variant='outline' onClick={onClose}>
+							Close
+						</Button>
+					</div>
+				) : (
 				<div className='flex items-center justify-between pt-4 border-t'>
 					<div className='flex items-center gap-2'>
 						{/* Color picker */}
@@ -387,6 +430,7 @@ export function MemoryEditorDialog({
 						)}
 					</div>
 				</div>
+				)}
 			</DialogContent>
 		</Dialog>
 	);

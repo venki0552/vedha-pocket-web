@@ -57,6 +57,7 @@ interface MemoryGridProps {
 	viewMode: "grid" | "list";
 	onEdit: (memory: Memory) => void;
 	orgId: string;
+	isArchiveView?: boolean;
 }
 
 // Google Keep color mapping
@@ -80,6 +81,7 @@ export function MemoryGrid({
 	viewMode,
 	onEdit,
 	orgId,
+	isArchiveView = false,
 }: MemoryGridProps) {
 	const router = useRouter();
 	const { toast } = useToast();

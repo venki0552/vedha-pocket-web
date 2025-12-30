@@ -4,6 +4,8 @@ import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import TaskList from "@tiptap/extension-task-list";
 import TaskItem from "@tiptap/extension-task-item";
+import Typography from "@tiptap/extension-typography";
+import Placeholder from "@tiptap/extension-placeholder";
 import {
 	Bold,
 	Italic,
@@ -45,6 +47,10 @@ export function TiptapEditor({
 			TaskItem.configure({
 				nested: true,
 			}),
+			Typography,
+			Placeholder.configure({
+				placeholder: 'Start writing your memory... (Supports Markdown)',
+			}),
 		],
 		content,
 		editable,
@@ -55,6 +61,11 @@ export function TiptapEditor({
 			attributes: {
 				class:
 					"prose prose-sm dark:prose-invert max-w-none focus:outline-none min-h-[200px] p-3",
+			},
+			// Handle paste to preserve formatting
+			handlePaste: (view, event, slice) => {
+				// Let Tiptap handle the paste naturally - it preserves HTML/MD formatting
+				return false;
 			},
 		},
 	});
