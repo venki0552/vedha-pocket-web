@@ -75,7 +75,7 @@ export function AppShell({ user, orgs, children }: AppShellProps) {
 	};
 
 	return (
-		<div className='flex min-h-screen'>
+		<div className='flex h-screen overflow-hidden'>
 			{/* Desktop Sidebar */}
 			<aside
 				className={cn(
@@ -233,7 +233,7 @@ export function AppShell({ user, orgs, children }: AppShellProps) {
 			</aside>
 
 			{/* Mobile Header */}
-			<div className='flex flex-1 flex-col'>
+			<div className='flex flex-1 flex-col overflow-hidden'>
 				<header className='md:hidden sticky top-0 z-50 flex h-14 items-center gap-4 border-b bg-background px-4'>
 					<Button
 						variant='ghost'
@@ -356,8 +356,10 @@ export function AppShell({ user, orgs, children }: AppShellProps) {
 				)}
 
 				{/* Main Content */}
-				<main className='flex-1 overflow-hidden'>
-					<div className='h-full px-6 py-4 max-w-7xl mx-auto'>{children}</div>
+				<main className='flex-1 overflow-hidden h-full'>
+					<div className='h-full px-6 py-4 max-w-7xl mx-auto overflow-hidden'>
+						{children}
+					</div>
 				</main>
 			</div>
 		</div>

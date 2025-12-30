@@ -24,7 +24,7 @@ export default async function AppPage() {
 	}
 
 	return (
-		<div className='h-full'>
+		<div className='h-full overflow-hidden'>
 			<MemoriesView orgId={membership.org_id} />
 		</div>
 	);
