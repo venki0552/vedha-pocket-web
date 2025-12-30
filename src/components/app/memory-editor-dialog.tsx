@@ -260,11 +260,19 @@ export function MemoryEditorDialog({
 			>
 				<DialogHeader className='flex flex-row items-center justify-between'>
 					<DialogTitle className='text-lg font-medium'>
-						{memory ? (viewMode === "view" ? memory.title || "Untitled Memory" : "Edit Memory") : "New Memory"}
+						{memory
+							? viewMode === "view"
+								? memory.title || "Untitled Memory"
+								: "Edit Memory"
+							: "New Memory"}
 					</DialogTitle>
 					<div className='flex items-center gap-2'>
 						{viewMode === "view" && memory && (
-							<Button variant='outline' size='sm' onClick={() => setViewMode("edit")}>
+							<Button
+								variant='outline'
+								size='sm'
+								onClick={() => setViewMode("edit")}
+							>
 								<FileEdit className='h-4 w-4 mr-2' />
 								Edit
 							</Button>
@@ -287,9 +295,11 @@ export function MemoryEditorDialog({
 					/* View Mode - Rendered HTML */
 					<div className='flex-1 overflow-y-auto space-y-4 pr-2'>
 						{/* Rendered content */}
-						<div 
+						<div
 							className='prose prose-sm dark:prose-invert max-w-none min-h-[200px]'
-							dangerouslySetInnerHTML={{ __html: memory.content_html || memory.content }}
+							dangerouslySetInnerHTML={{
+								__html: memory.content_html || memory.content,
+							}}
 						/>
 
 						{/* Tags */}
@@ -346,18 +356,18 @@ export function MemoryEditorDialog({
 									onChange={(e) => setTagInput(e.target.value)}
 									onKeyDown={(e) => {
 										if (e.key === "Enter") {
-										e.preventDefault();
-										addTag();
-									}
-								}}
-								className='max-w-[200px]'
-							/>
-							<Button variant='outline' size='sm' onClick={addTag}>
-								<Tag className='h-4 w-4' />
-							</Button>
+											e.preventDefault();
+											addTag();
+										}
+									}}
+									className='max-w-[200px]'
+								/>
+								<Button variant='outline' size='sm' onClick={addTag}>
+									<Tag className='h-4 w-4' />
+								</Button>
+							</div>
 						</div>
 					</div>
-				</div>
 				)}
 
 				{/* Footer */}
@@ -368,68 +378,68 @@ export function MemoryEditorDialog({
 						</Button>
 					</div>
 				) : (
-				<div className='flex items-center justify-between pt-4 border-t'>
-					<div className='flex items-center gap-2'>
-						{/* Color picker */}
-						<Popover>
-							<PopoverTrigger asChild>
-								<Button variant='outline' size='icon'>
-									<Palette className='h-4 w-4' />
-								</Button>
-							</PopoverTrigger>
-							<PopoverContent className='w-auto p-2'>
-								<div className='grid grid-cols-4 gap-2'>
-									{colors.map((c) => (
-										<button
-											key={c.name}
-											className={cn(
-												"h-8 w-8 rounded-full border-2 transition-all",
-												c.class,
-												color === c.name
-													? "border-primary ring-2 ring-primary ring-offset-2"
-													: "border-transparent hover:border-muted-foreground"
-											)}
-											onClick={() => setColor(c.name)}
-										>
-											{color === c.name && (
-												<Check className='h-4 w-4 mx-auto' />
-											)}
-										</button>
-									))}
-								</div>
-							</PopoverContent>
-						</Popover>
-					</div>
+					<div className='flex items-center justify-between pt-4 border-t'>
+						<div className='flex items-center gap-2'>
+							{/* Color picker */}
+							<Popover>
+								<PopoverTrigger asChild>
+									<Button variant='outline' size='icon'>
+										<Palette className='h-4 w-4' />
+									</Button>
+								</PopoverTrigger>
+								<PopoverContent className='w-auto p-2'>
+									<div className='grid grid-cols-4 gap-2'>
+										{colors.map((c) => (
+											<button
+												key={c.name}
+												className={cn(
+													"h-8 w-8 rounded-full border-2 transition-all",
+													c.class,
+													color === c.name
+														? "border-primary ring-2 ring-primary ring-offset-2"
+														: "border-transparent hover:border-muted-foreground"
+												)}
+												onClick={() => setColor(c.name)}
+											>
+												{color === c.name && (
+													<Check className='h-4 w-4 mx-auto' />
+												)}
+											</button>
+										))}
+									</div>
+								</PopoverContent>
+							</Popover>
+						</div>
 
-					<div className='flex items-center gap-2'>
-						<Button variant='outline' onClick={onClose}>
-							Cancel
-						</Button>
-						<Button
-							variant='outline'
-							onClick={handleSave}
-							disabled={isSaving || isPublishing}
-						>
-							{isSaving ? (
-								<Loader2 className='h-4 w-4 mr-2 animate-spin' />
-							) : null}
-							Save Draft
-						</Button>
-						{!isPublished && (
-							<Button
-								onClick={handlePublish}
-								disabled={isSaving || isPublishing || !content.trim()}
-							>
-								{isPublishing ? (
-									<Loader2 className='h-4 w-4 mr-2 animate-spin' />
-								) : (
-									<Globe className='h-4 w-4 mr-2' />
-								)}
-								Publish
+						<div className='flex items-center gap-2'>
+							<Button variant='outline' onClick={onClose}>
+								Cancel
 							</Button>
-						)}
+							<Button
+								variant='outline'
+								onClick={handleSave}
+								disabled={isSaving || isPublishing}
+							>
+								{isSaving ? (
+									<Loader2 className='h-4 w-4 mr-2 animate-spin' />
+								) : null}
+								Save Draft
+							</Button>
+							{!isPublished && (
+								<Button
+									onClick={handlePublish}
+									disabled={isSaving || isPublishing || !content.trim()}
+								>
+									{isPublishing ? (
+										<Loader2 className='h-4 w-4 mr-2 animate-spin' />
+									) : (
+										<Globe className='h-4 w-4 mr-2' />
+									)}
+									Publish
+								</Button>
+							)}
+						</div>
 					</div>
-				</div>
 				)}
 			</DialogContent>
 		</Dialog>

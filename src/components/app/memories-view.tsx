@@ -1,8 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Plus, Grid3X3, List, Search, Tag, Archive } from "lucide-react";
+import {
+	Plus,
+	Grid3X3,
+	List,
+	Search,
+	Tag,
+	Archive,
+	Loader2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,33 +17,14 @@ import { MemoryGrid } from "@/components/app/memory-grid";
 import { GeneralChat } from "@/components/app/general-chat";
 import { MemoryEditorDialog } from "@/components/app/memory-editor-dialog";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
-
-interface Memory {
-	id: string;
-	org_id: string;
-	user_id: string;
-	title: string | null;
-	content: string;
-	content_html: string;
-	color: string;
-	tags: string[];
-	status: "draft" | "published";
-	is_pinned: boolean;
-	is_archived: boolean;
-	created_at: string;
-	updated_at: string;
-	published_at: string | null;
-}
+import { MemoryGridSkeleton } from "@/components/app/memory-skeleton";
+import { useMemories, useMemoryTags, type Memory } from "@/hooks/use-memories";
 
 interface MemoriesViewProps {
-	memories: Memory[];
-	tags: string[];
 	orgId: string;
 }
 
-export function MemoriesView({ memories, tags, orgId }: MemoriesViewProps) {
-	const router = useRouter();
+export function MemoriesView({ orgId }: MemoriesViewProps) {
 	const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 	const [showArchived, setShowArchived] = useState(false);
 	const [searchQuery, setSearchQuery] = useState("");
@@ -45,9 +33,17 @@ export function MemoriesView({ memories, tags, orgId }: MemoriesViewProps) {
 	const [editingMemory, setEditingMemory] = useState<Memory | null>(null);
 	const [editorViewMode, setEditorViewMode] = useState<"view" | "edit">("edit");
 
+	// Fetch memories with React Query
+	const {
+		data: memories = [],
+		isLoading: memoriesLoading,
+		isFetching: memoriesFetching,
+	} = useMemories(orgId);
+	const { data: tags = [], isLoading: tagsLoading } = useMemoryTags(orgId);
+
 	// Filter memories based on archived state
-	const activeMemories = memories.filter((m) => !m.is_archived);
-	const archivedMemories = memories.filter((m) => m.is_archived);
+	const activeMemories = memories.filter((m: Memory) => !m.is_archived);
+	const archivedMemories = memories.filter((m: Memory) => m.is_archived);
 	const displayMemories = showArchived ? archivedMemories : activeMemories;
 
 	// Filter memories
@@ -85,7 +81,7 @@ export function MemoriesView({ memories, tags, orgId }: MemoriesViewProps) {
 	const handleCloseEditor = () => {
 		setEditorOpen(false);
 		setEditingMemory(null);
-		router.refresh();
+		// React Query will automatically refetch based on invalidation in mutations
 	};
 
 	const toggleTag = (tag: string) => {
@@ -101,20 +97,30 @@ export function MemoriesView({ memories, tags, orgId }: MemoriesViewProps) {
 				{/* Header */}
 				<div className='flex items-center justify-between gap-4 flex-wrap mb-4'>
 					<div className='flex items-center gap-2'>
-						<Tabs value={showArchived ? "archived" : "active"} onValueChange={(v) => setShowArchived(v === "archived")}>
+						<Tabs
+							value={showArchived ? "archived" : "active"}
+							onValueChange={(v) => setShowArchived(v === "archived")}
+						>
 							<TabsList>
 								<TabsTrigger value='active' className='gap-2'>
 									<Grid3X3 className='h-4 w-4' />
 									Memories
-									<Badge variant="secondary" className="ml-1">{activeMemories.length}</Badge>
+									<Badge variant='secondary' className='ml-1'>
+										{activeMemories.length}
+									</Badge>
 								</TabsTrigger>
 								<TabsTrigger value='archived' className='gap-2'>
 									<Archive className='h-4 w-4' />
 									Archived
-									<Badge variant="secondary" className="ml-1">{archivedMemories.length}</Badge>
+									<Badge variant='secondary' className='ml-1'>
+										{archivedMemories.length}
+									</Badge>
 								</TabsTrigger>
 							</TabsList>
 						</Tabs>
+						{memoriesFetching && !memoriesLoading && (
+							<Loader2 className='h-4 w-4 animate-spin text-muted-foreground' />
+						)}
 					</div>
 
 					<div className='flex items-center gap-2'>
@@ -156,45 +162,58 @@ export function MemoriesView({ memories, tags, orgId }: MemoriesViewProps) {
 					</div>
 
 					{/* Tags filter */}
-					{tags.length > 0 && (
-						<div className='flex items-center gap-2 flex-wrap'>
+					{tagsLoading ? (
+						<div className='flex items-center gap-2'>
 							<Tag className='h-4 w-4 text-muted-foreground' />
-							{tags.map((tag) => (
-								<Badge
-									key={tag}
-									variant={selectedTags.includes(tag) ? "default" : "outline"}
-									className='cursor-pointer'
-									onClick={() => toggleTag(tag)}
-								>
-									{tag}
-								</Badge>
-							))}
-							{selectedTags.length > 0 && (
-								<Button
-									variant='ghost'
-									size='sm'
-									onClick={() => setSelectedTags([])}
-								>
-									Clear
-								</Button>
-							)}
+							<Loader2 className='h-4 w-4 animate-spin text-muted-foreground' />
 						</div>
+					) : (
+						tags.length > 0 && (
+							<div className='flex items-center gap-2 flex-wrap'>
+								<Tag className='h-4 w-4 text-muted-foreground' />
+								{tags.map((tag) => (
+									<Badge
+										key={tag}
+										variant={selectedTags.includes(tag) ? "default" : "outline"}
+										className='cursor-pointer'
+										onClick={() => toggleTag(tag)}
+									>
+										{tag}
+									</Badge>
+								))}
+								{selectedTags.length > 0 && (
+									<Button
+										variant='ghost'
+										size='sm'
+										onClick={() => setSelectedTags([])}
+									>
+										Clear
+									</Button>
+								)}
+							</div>
+						)
 					)}
 				</div>
 
 				{/* Memory grid */}
 				<div className='flex-1 overflow-y-auto'>
-					{filteredMemories.length === 0 ? (
+					{memoriesLoading ? (
+						<MemoryGridSkeleton count={6} />
+					) : filteredMemories.length === 0 ? (
 						<div className='text-center py-12'>
 							<div className='mx-auto h-12 w-12 text-muted-foreground mb-4'>
-								{showArchived ? <Archive className='h-12 w-12' /> : <Grid3X3 className='h-12 w-12' />}
+								{showArchived ? (
+									<Archive className='h-12 w-12' />
+								) : (
+									<Grid3X3 className='h-12 w-12' />
+								)}
 							</div>
 							<h3 className='text-lg font-medium'>
 								{showArchived ? "No archived memories" : "No memories yet"}
 							</h3>
 							<p className='text-muted-foreground mt-1'>
-								{showArchived 
-									? "Archived memories will appear here" 
+								{showArchived
+									? "Archived memories will appear here"
 									: "Create your first memory to get started"}
 							</p>
 							{!showArchived && (

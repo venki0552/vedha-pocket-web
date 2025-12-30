@@ -49,7 +49,7 @@ export function TiptapEditor({
 			}),
 			Typography,
 			Placeholder.configure({
-				placeholder: 'Start writing your memory... (Supports Markdown)',
+				placeholder: "Start writing your memory... (Supports Markdown)",
 			}),
 		],
 		content,
