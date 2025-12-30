@@ -241,9 +241,7 @@ export function MemoryGrid({
 						})}
 					</span>
 					<div className='flex items-center gap-1.5'>
-						{memory.is_pinned && (
-							<Pin className='h-3.5 w-3.5 fill-current' />
-						)}
+						{memory.is_pinned && <Pin className='h-3.5 w-3.5 fill-current' />}
 						{memory.status === "published" ? (
 							<Globe className='h-3.5 w-3.5 text-primary' />
 						) : (

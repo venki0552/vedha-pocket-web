@@ -143,9 +143,10 @@ export function useUpdateMemory() {
 		onSuccess: (data) => {
 			// Update the specific memory in cache
 			queryClient.setQueryData(memoryKeys.detail(data.id), data);
-			// Invalidate lists
+			// Invalidate all memory lists to refetch
 			queryClient.invalidateQueries({
 				queryKey: memoryKeys.lists(),
+				refetchType: "all",
 			});
 			// Invalidate tags if tags changed
 			queryClient.invalidateQueries({

@@ -28,7 +28,11 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
 import { TiptapEditor } from "@/components/app/tiptap-editor";
-import { useCreateMemory, useUpdateMemory, usePublishMemory } from "@/hooks/use-memories";
+import {
+	useCreateMemory,
+	useUpdateMemory,
+	usePublishMemory,
+} from "@/hooks/use-memories";
 
 interface Memory {
 	id: string;
