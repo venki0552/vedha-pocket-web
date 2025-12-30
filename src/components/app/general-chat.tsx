@@ -19,6 +19,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
+import { Markdown } from "@/components/ui/markdown";
 import { cn } from "@/lib/utils";
 import { api } from "@/lib/api";
 
@@ -357,9 +358,13 @@ export function GeneralChat({ orgId }: GeneralChatProps) {
 												: "bg-muted"
 										)}
 									>
-										<p className='text-sm whitespace-pre-wrap'>
-											{message.content}
-										</p>
+										{message.role === "assistant" ? (
+											<Markdown content={message.content} className="text-sm" />
+										) : (
+											<p className='text-sm whitespace-pre-wrap'>
+												{message.content}
+											</p>
+										)}
 
 										{/* Citations */}
 										{message.citations && message.citations.length > 0 && (
@@ -414,12 +419,11 @@ export function GeneralChat({ orgId }: GeneralChatProps) {
 												))}
 											</div>
 										)}
-										<p className='text-sm whitespace-pre-wrap'>
-											{streamingContent}
-											{!streamingContent && !streamingStatus && (
-												<Loader2 className='h-4 w-4 animate-spin' />
-											)}
-										</p>
+										{streamingContent ? (
+											<Markdown content={streamingContent} className="text-sm" />
+										) : (
+											!streamingStatus && <Loader2 className='h-4 w-4 animate-spin' />
+										)}
 									</div>
 								</div>
 							)}
