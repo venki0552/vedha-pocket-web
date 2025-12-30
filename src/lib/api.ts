@@ -255,4 +255,115 @@ export const api = {
     }),
   deleteOpenRouterKey: () =>
     apiFetch<{ data: { success: boolean } }>('/settings/openrouter-key', { method: 'DELETE' }),
+
+  // Memories
+  listMemories: (params: { org_id: string; status?: string; tag?: string; color?: string; is_archived?: boolean }) => {
+    const queryParams: Record<string, string> = { org_id: params.org_id };
+    if (params.status) queryParams.status = params.status;
+    if (params.tag) queryParams.tag = params.tag;
+    if (params.color) queryParams.color = params.color;
+    if (params.is_archived !== undefined) queryParams.archived = String(params.is_archived);
+    return apiFetch<{ data: any[] }>('/memories', { params: queryParams });
+  },
+  createMemory: (data: { org_id: string; title?: string; content: string; content_html?: string; color?: string; tags?: string[] }) =>
+    apiFetch<{ data: any }>('/memories', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  getMemory: (id: string) => apiFetch<{ data: any }>(`/memories/${id}`),
+  updateMemory: (id: string, data: { title?: string; content?: string; content_html?: string; color?: string; tags?: string[]; is_pinned?: boolean; is_archived?: boolean }) =>
+    apiFetch<{ data: any }>(`/memories/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+  deleteMemory: (id: string) => apiFetch<void>(`/memories/${id}`, { method: 'DELETE' }),
+  publishMemory: (id: string) => apiFetch<{ data: any }>(`/memories/${id}/publish`, { method: 'POST' }),
+  unpublishMemory: (id: string) => apiFetch<{ data: any }>(`/memories/${id}/unpublish`, { method: 'POST' }),
+  getMemoryTags: (orgId: string) => apiFetch<{ data: string[] }>('/memories/tags', { params: { org_id: orgId } }),
+  getSharedWithMe: () => apiFetch<{ data: any[] }>('/memories/shared/with-me'),
+
+  // Memory Shares
+  shareMemory: (memoryId: string, email: string, permission: 'view' | 'comment') =>
+    apiFetch<{ data: any }>('/memory-shares', {
+      method: 'POST',
+      body: JSON.stringify({ memory_id: memoryId, email, permission }),
+    }),
+  listMemoryShares: (memoryId: string) =>
+    apiFetch<{ data: any[] }>('/memory-shares', { params: { memory_id: memoryId } }),
+  removeMemoryShare: (shareId: string) =>
+    apiFetch<void>(`/memory-shares/${shareId}`, { method: 'DELETE' }),
+
+  // Memory Comments
+  listMemoryComments: (memoryId: string) =>
+    apiFetch<{ data: any[] }>('/memory-comments', { params: { memory_id: memoryId } }),
+  addMemoryComment: (memoryId: string, content: string, positionStart?: number, positionEnd?: number, parentCommentId?: string) =>
+    apiFetch<{ data: any }>('/memory-comments', {
+      method: 'POST',
+      body: JSON.stringify({ memory_id: memoryId, content, position_start: positionStart, position_end: positionEnd, parent_comment_id: parentCommentId }),
+    }),
+  deleteMemoryComment: (commentId: string) =>
+    apiFetch<void>(`/memory-comments/${commentId}`, { method: 'DELETE' }),
+
+  // General Chat (memories RAG)
+  listGeneralConversations: (orgId: string) =>
+    apiFetch<{ data: any[] }>('/general-chat/conversations', { params: { org_id: orgId } }),
+  getGeneralConversation: (conversationId: string) =>
+    apiFetch<{ data: any[] }>(`/general-chat/conversations/${conversationId}/messages`),
+  deleteGeneralConversation: (conversationId: string) =>
+    apiFetch<void>(`/general-chat/conversations/${conversationId}`, { method: 'DELETE' }),
+  askGeneralChat: async (
+    orgId: string,
+    question: string,
+    conversationId?: string,
+    onEvent?: (event: { type: string; payload: any }) => void
+  ): Promise<{ answer: string; citations: any[]; conversation_id: string }> => {
+    const supabase = createClient();
+    const { data: { session } } = await supabase.auth.getSession();
+
+    const response = await fetch(`${API_URL}/general-chat/ask/stream`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(session?.access_token ? { 'Authorization': `Bearer ${session.access_token}` } : {}),
+      },
+      body: JSON.stringify({ org_id: orgId, question, conversation_id: conversationId }),
+    });
+
+    if (!response.ok || !response.body) {
+      throw new Error('Failed to start streaming');
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let result: any = {};
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const parts = buffer.split('\n\n');
+      buffer = parts.pop() || '';
+
+      for (const part of parts) {
+        if (!part.startsWith('data:')) continue;
+        const data = part.replace('data:', '').trim();
+        if (!data) continue;
+
+        try {
+          const event = JSON.parse(data);
+          if (onEvent) onEvent(event);
+
+          if (event.type === 'done') {
+            result = event.payload;
+          }
+        } catch {
+          continue;
+        }
+      }
+    }
+
+    return result;
+  },
 };

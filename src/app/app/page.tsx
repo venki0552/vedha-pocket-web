@@ -1,28 +1,35 @@
 import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/server";
-import { PocketList } from "@/components/app/pocket-list";
-import { PocketListSkeleton } from "@/components/app/pocket-list-skeleton";
+import { MemoriesView } from "@/components/app/memories-view";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default async function AppPage() {
 	return (
 		<div className='space-y-6'>
-			<div className='flex items-center justify-between'>
-				<div>
-					<h1 className='text-3xl font-bold tracking-tight'>Pockets</h1>
-					<p className='text-muted-foreground'>
-						Manage your knowledge containers
-					</p>
-				</div>
-			</div>
-
-			<Suspense fallback={<PocketListSkeleton />}>
-				<PocketListWrapper />
+			<Suspense fallback={<MemoriesViewSkeleton />}>
+				<MemoriesWrapper />
 			</Suspense>
 		</div>
 	);
 }
 
-async function PocketListWrapper() {
+function MemoriesViewSkeleton() {
+	return (
+		<div className='space-y-6'>
+			<div className='flex items-center justify-between'>
+				<Skeleton className='h-8 w-40' />
+				<Skeleton className='h-10 w-32' />
+			</div>
+			<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4'>
+				{[...Array(8)].map((_, i) => (
+					<Skeleton key={i} className='h-48 rounded-lg' />
+				))}
+			</div>
+		</div>
+	);
+}
+
+async function MemoriesWrapper() {
 	const supabase = await createClient();
 	const {
 		data: { user },
@@ -43,38 +50,32 @@ async function PocketListWrapper() {
 		return null;
 	}
 
-	// Get pockets
-	const { data: pockets } = await supabase
-		.from("pockets")
-		.select(
-			`
-      *,
-      sources:sources(count)
-    `
-		)
+	// Get memories (non-archived)
+	const { data: memories } = await supabase
+		.from("memories")
+		.select("*")
 		.eq("org_id", membership.org_id)
+		.eq("is_archived", false)
+		.order("is_pinned", { ascending: false })
 		.order("updated_at", { ascending: false });
 
-	// Get pocket member info for access
-	const pocketIds = pockets?.map((p) => p.id) || [];
-	const { data: pocketMembers } = await supabase
-		.from("pocket_members")
-		.select("pocket_id, role")
-		.eq("user_id", user.id)
-		.in("pocket_id", pocketIds);
+	// Get unique tags
+	const { data: tagsResult } = await supabase
+		.from("memories")
+		.select("tags")
+		.eq("org_id", membership.org_id)
+		.eq("is_archived", false);
 
-	const pocketMemberMap = new Map(
-		pocketMembers?.map((pm) => [pm.pocket_id, pm.role === 'owner' || pm.role === 'member']) || []
+	const allTags = new Set<string>();
+	tagsResult?.forEach((m) => {
+		m.tags?.forEach((tag: string) => allTags.add(tag));
+	});
+
+	return (
+		<MemoriesView
+			memories={memories || []}
+			tags={Array.from(allTags)}
+			orgId={membership.org_id}
+		/>
 	);
-
-	const pocketsWithAccess =
-		pockets?.map((pocket) => ({
-			...pocket,
-			canEdit:
-				pocket.created_by === user.id ||
-				pocketMemberMap.get(pocket.id) === true,
-			sourceCount: pocket.sources?.[0]?.count || 0,
-		})) || [];
-
-	return <PocketList pockets={pocketsWithAccess} orgId={membership.org_id} />;
 }

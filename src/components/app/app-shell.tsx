@@ -21,14 +21,14 @@ import { Separator } from "@/components/ui/separator";
 import {
 	Brain,
 	FolderOpen,
-	ListTodo,
-	BarChart3,
+	Sparkles,
 	Settings,
 	LogOut,
-	Plus,
 	ChevronDown,
 	Menu,
 	X,
+	PanelLeftClose,
+	PanelLeft,
 } from "lucide-react";
 
 interface Org {
@@ -45,9 +45,8 @@ interface AppShellProps {
 }
 
 const navItems = [
-	{ href: "/app", label: "Pockets", icon: FolderOpen },
-	{ href: "/app/tasks", label: "Tasks", icon: ListTodo },
-	{ href: "/app/analytics", label: "Analytics", icon: BarChart3 },
+	{ href: "/app", label: "Memories", icon: Sparkles },
+	{ href: "/app/pockets", label: "Pockets", icon: FolderOpen },
 	{ href: "/app/settings", label: "Settings", icon: Settings },
 ];
 
@@ -55,6 +54,7 @@ export function AppShell({ user, orgs, children }: AppShellProps) {
 	const pathname = usePathname();
 	const router = useRouter();
 	const supabase = createClient();
+	const [sidebarOpen, setSidebarOpen] = useState(true);
 	const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 	const [currentOrg, setCurrentOrg] = useState(orgs[0]);
 
@@ -75,15 +75,169 @@ export function AppShell({ user, orgs, children }: AppShellProps) {
 	};
 
 	return (
-		<div className='flex min-h-screen flex-col'>
-			{/* Top Navigation */}
-			<header className='sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
-				<div className='flex h-14 items-center px-4'>
-					{/* Mobile menu toggle */}
+		<div className='flex min-h-screen'>
+			{/* Desktop Sidebar */}
+			<aside
+				className={cn(
+					"hidden md:flex flex-col border-r bg-background transition-all duration-300",
+					sidebarOpen ? "w-64" : "w-16"
+				)}
+			>
+				{/* Logo */}
+				<div className='flex h-14 items-center px-4 border-b'>
+					<Link href='/app' className='flex items-center gap-2'>
+						<Brain className='h-6 w-6 text-primary shrink-0' />
+						{sidebarOpen && (
+							<span className='font-bold text-lg'>Memory Palace</span>
+						)}
+					</Link>
+				</div>
+
+				{/* Org Selector */}
+				{sidebarOpen && (
+					<div className='p-4'>
+						<DropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<Button
+									variant='outline'
+									className='w-full justify-between gap-2'
+								>
+									<span className='truncate'>{currentOrg?.name}</span>
+									<ChevronDown className='h-4 w-4 shrink-0' />
+								</Button>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent align='start' className='w-56'>
+								<DropdownMenuLabel>Workspaces</DropdownMenuLabel>
+								<DropdownMenuSeparator />
+								{orgs.map((org) => (
+									<DropdownMenuItem
+										key={org.id}
+										onClick={() => setCurrentOrg(org)}
+										className={cn(currentOrg?.id === org.id && "bg-accent")}
+									>
+										{org.name}
+									</DropdownMenuItem>
+								))}
+							</DropdownMenuContent>
+						</DropdownMenu>
+					</div>
+				)}
+
+				{/* Navigation */}
+				<ScrollArea className='flex-1 px-3'>
+					<nav className='flex flex-col gap-1 py-2'>
+						{navItems.map((item) => {
+							const isActive =
+								item.href === "/app"
+									? pathname === "/app" || pathname.startsWith("/app/memory")
+									: pathname.startsWith(item.href);
+							return (
+								<Link
+									key={item.href}
+									href={item.href}
+									className={cn(
+										"flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
+										isActive
+											? "bg-accent text-accent-foreground"
+											: "text-muted-foreground",
+										!sidebarOpen && "justify-center"
+									)}
+									title={!sidebarOpen ? item.label : undefined}
+								>
+									<item.icon className='h-5 w-5 shrink-0' />
+									{sidebarOpen && <span>{item.label}</span>}
+								</Link>
+							);
+						})}
+					</nav>
+				</ScrollArea>
+
+				{/* Bottom section */}
+				<div className='border-t p-3'>
+					{/* Toggle sidebar button */}
 					<Button
 						variant='ghost'
 						size='icon'
-						className='mr-2 md:hidden'
+						className={cn("w-full", sidebarOpen && "justify-start px-3")}
+						onClick={() => setSidebarOpen(!sidebarOpen)}
+					>
+						{sidebarOpen ? (
+							<>
+								<PanelLeftClose className='h-5 w-5' />
+								<span className='ml-3 text-sm'>Collapse</span>
+							</>
+						) : (
+							<PanelLeft className='h-5 w-5' />
+						)}
+					</Button>
+
+					<Separator className='my-3' />
+
+					{/* User menu */}
+					<DropdownMenu>
+						<DropdownMenuTrigger asChild>
+							<Button
+								variant='ghost'
+								className={cn(
+									"w-full",
+									sidebarOpen ? "justify-start px-3" : "px-0 justify-center"
+								)}
+							>
+								<Avatar className='h-8 w-8 shrink-0'>
+									<AvatarImage
+										src={user.user_metadata?.avatar_url}
+										alt={user.user_metadata?.full_name}
+									/>
+									<AvatarFallback>
+										{getInitials(user.user_metadata?.full_name || user.email)}
+									</AvatarFallback>
+								</Avatar>
+								{sidebarOpen && (
+									<div className='ml-3 flex flex-col items-start text-left'>
+										<span className='text-sm font-medium truncate max-w-[140px]'>
+											{user.user_metadata?.full_name || "User"}
+										</span>
+										<span className='text-xs text-muted-foreground truncate max-w-[140px]'>
+											{user.email}
+										</span>
+									</div>
+								)}
+							</Button>
+						</DropdownMenuTrigger>
+						<DropdownMenuContent align='end' className='w-56'>
+							<DropdownMenuLabel>
+								<div className='flex flex-col space-y-1'>
+									<p className='text-sm font-medium leading-none'>
+										{user.user_metadata?.full_name || "User"}
+									</p>
+									<p className='text-xs leading-none text-muted-foreground'>
+										{user.email}
+									</p>
+								</div>
+							</DropdownMenuLabel>
+							<DropdownMenuSeparator />
+							<DropdownMenuItem asChild>
+								<Link href='/app/settings'>
+									<Settings className='mr-2 h-4 w-4' />
+									Settings
+								</Link>
+							</DropdownMenuItem>
+							<DropdownMenuSeparator />
+							<DropdownMenuItem onClick={handleSignOut}>
+								<LogOut className='mr-2 h-4 w-4' />
+								Sign Out
+							</DropdownMenuItem>
+						</DropdownMenuContent>
+					</DropdownMenu>
+				</div>
+			</aside>
+
+			{/* Mobile Header */}
+			<div className='flex flex-1 flex-col'>
+				<header className='md:hidden sticky top-0 z-50 flex h-14 items-center gap-4 border-b bg-background px-4'>
+					<Button
+						variant='ghost'
+						size='icon'
 						onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
 					>
 						{mobileMenuOpen ? (
@@ -92,65 +246,11 @@ export function AppShell({ user, orgs, children }: AppShellProps) {
 							<Menu className='h-5 w-5' />
 						)}
 					</Button>
-
-					{/* Logo */}
-					<Link href='/app' className='mr-4 flex items-center space-x-2'>
+					<Link href='/app' className='flex items-center gap-2'>
 						<Brain className='h-6 w-6 text-primary' />
-						<span className='hidden font-bold md:inline-block'>
-							Vedha Pocket
-						</span>
+						<span className='font-bold'>Memory Palace</span>
 					</Link>
-
-					{/* Org Selector */}
-					<DropdownMenu>
-						<DropdownMenuTrigger asChild>
-							<Button variant='outline' className='gap-2'>
-								{currentOrg?.name}
-								<ChevronDown className='h-4 w-4' />
-							</Button>
-						</DropdownMenuTrigger>
-						<DropdownMenuContent align='start'>
-							<DropdownMenuLabel>Organizations</DropdownMenuLabel>
-							<DropdownMenuSeparator />
-							{orgs.map((org) => (
-								<DropdownMenuItem
-									key={org.id}
-									onClick={() => setCurrentOrg(org)}
-									className={cn(currentOrg?.id === org.id && "bg-accent")}
-								>
-									{org.name}
-								</DropdownMenuItem>
-							))}
-							<DropdownMenuSeparator />
-							<DropdownMenuItem>
-								<Plus className='mr-2 h-4 w-4' />
-								Create Organization
-							</DropdownMenuItem>
-						</DropdownMenuContent>
-					</DropdownMenu>
-
-					{/* Desktop Navigation */}
-					<nav className='ml-6 hidden items-center space-x-4 md:flex'>
-						{navItems.map((item) => (
-							<Link
-								key={item.href}
-								href={item.href}
-								className={cn(
-									"flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary",
-									pathname === item.href
-										? "text-foreground"
-										: "text-muted-foreground"
-								)}
-							>
-								<item.icon className='h-4 w-4' />
-								{item.label}
-							</Link>
-						))}
-					</nav>
-
-					{/* Right side */}
-					<div className='ml-auto flex items-center gap-4'>
-						{/* User Menu */}
+					<div className='ml-auto'>
 						<DropdownMenu>
 							<DropdownMenuTrigger asChild>
 								<Button
@@ -194,41 +294,72 @@ export function AppShell({ user, orgs, children }: AppShellProps) {
 							</DropdownMenuContent>
 						</DropdownMenu>
 					</div>
-				</div>
-			</header>
+				</header>
 
-			{/* Mobile Navigation */}
-			{mobileMenuOpen && (
-				<div className='fixed inset-0 top-14 z-40 bg-background md:hidden'>
-					<ScrollArea className='h-full'>
-						<div className='p-4'>
-							<nav className='flex flex-col space-y-2'>
-								{navItems.map((item) => (
-									<Link
-										key={item.href}
-										href={item.href}
-										onClick={() => setMobileMenuOpen(false)}
-										className={cn(
-											"flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent",
-											pathname === item.href
-												? "bg-accent text-accent-foreground"
-												: "text-muted-foreground"
-										)}
-									>
-										<item.icon className='h-5 w-5' />
-										{item.label}
-									</Link>
-								))}
-							</nav>
-						</div>
-					</ScrollArea>
-				</div>
-			)}
+				{/* Mobile Navigation Overlay */}
+				{mobileMenuOpen && (
+					<div className='md:hidden fixed inset-0 top-14 z-40 bg-background'>
+						<ScrollArea className='h-full'>
+							<div className='p-4'>
+								{/* Org selector */}
+								<DropdownMenu>
+									<DropdownMenuTrigger asChild>
+										<Button
+											variant='outline'
+											className='w-full justify-between'
+										>
+											{currentOrg?.name}
+											<ChevronDown className='h-4 w-4' />
+										</Button>
+									</DropdownMenuTrigger>
+									<DropdownMenuContent className='w-full'>
+										{orgs.map((org) => (
+											<DropdownMenuItem
+												key={org.id}
+												onClick={() => setCurrentOrg(org)}
+											>
+												{org.name}
+											</DropdownMenuItem>
+										))}
+									</DropdownMenuContent>
+								</DropdownMenu>
 
-			{/* Main Content */}
-			<main className='flex-1'>
-				<div className='container py-6'>{children}</div>
-			</main>
+								<Separator className='my-4' />
+
+								<nav className='flex flex-col gap-1'>
+									{navItems.map((item) => {
+										const isActive =
+											item.href === "/app"
+												? pathname === "/app"
+												: pathname.startsWith(item.href);
+										return (
+											<Link
+												key={item.href}
+												href={item.href}
+												onClick={() => setMobileMenuOpen(false)}
+												className={cn(
+													"flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition-colors hover:bg-accent",
+													isActive
+														? "bg-accent text-accent-foreground"
+														: "text-muted-foreground"
+												)}
+											>
+												<item.icon className='h-5 w-5' />
+												{item.label}
+											</Link>
+										);
+									})}
+								</nav>
+							</div>
+						</ScrollArea>
+					</div>
+				)}
+
+				{/* Main Content */}
+				<main className='flex-1 overflow-auto'>
+					<div className='container py-6 max-w-7xl'>{children}</div>
+				</main>
+			</div>
 		</div>
 	);
 }
