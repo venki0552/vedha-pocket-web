@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/app/app-shell";
+import { ApiKeyGuard } from "@/components/app/api-key-guard";
 
 export default async function AppLayout({
 	children,
@@ -22,6 +23,15 @@ export default async function AppLayout({
 		.from("memberships")
 		.select("org_id, role, orgs(id, name, slug)")
 		.eq("user_id", user.id);
+
+	// Check if user has OpenRouter API key configured
+	const { data: userSettings } = await supabase
+		.from("user_settings")
+		.select("openrouter_api_key_encrypted")
+		.eq("user_id", user.id)
+		.single();
+
+	const hasApiKey = !!userSettings?.openrouter_api_key_encrypted;
 
 	// If no memberships, the signup trigger may have failed
 	if (!memberships || memberships.length === 0) {
@@ -68,8 +78,10 @@ export default async function AppLayout({
 	});
 
 	return (
-		<AppShell user={user} orgs={orgs}>
-			{children}
-		</AppShell>
+		<ApiKeyGuard initialHasKey={hasApiKey}>
+			<AppShell user={user} orgs={orgs}>
+				{children}
+			</AppShell>
+		</ApiKeyGuard>
 	);
 }

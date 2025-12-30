@@ -183,7 +183,8 @@ export default function HomePage() {
 							100% Open Source
 						</h2>
 						<p className='max-w-[85%] leading-normal text-muted-foreground sm:text-lg sm:leading-7'>
-							Self-host it, customize it, make it yours. No subscriptions, no vendor lock-in.
+							Self-host it, customize it, make it yours. No subscriptions, no
+							vendor lock-in.
 						</p>
 					</div>
 					<div className='mx-auto mt-8 grid max-w-[64rem] gap-8 md:grid-cols-3'>
@@ -193,7 +194,9 @@ export default function HomePage() {
 								<CardTitle className='mt-4'>Web App</CardTitle>
 							</CardHeader>
 							<CardContent>
-								<CardDescription>Next.js 14 frontend with shadcn/ui</CardDescription>
+								<CardDescription>
+									Next.js 14 frontend with shadcn/ui
+								</CardDescription>
 								<a
 									href='https://github.com/venki0552/vedha-pocket-web'
 									target='_blank'
@@ -227,7 +230,9 @@ export default function HomePage() {
 								<CardTitle className='mt-4'>Worker</CardTitle>
 							</CardHeader>
 							<CardContent>
-								<CardDescription>Background processing with Playwright</CardDescription>
+								<CardDescription>
+									Background processing with Playwright
+								</CardDescription>
 								<a
 									href='https://github.com/venki0552/vedha-pocket-worker'
 									target='_blank'
@@ -248,8 +253,9 @@ export default function HomePage() {
 						</CardHeader>
 						<CardContent className='text-sm text-muted-foreground'>
 							<p>
-								This demo uses <strong>OpenRouter</strong> for LLM and embeddings. To use the app,
-								you&apos;ll need to add your own API key in Settings after signing up.
+								This demo uses <strong>OpenRouter</strong> for LLM and
+								embeddings. To use the app, you&apos;ll need to add your own API
+								key in Settings after signing up.
 							</p>
 							<a
 								href='https://openrouter.ai/keys'
@@ -270,8 +276,8 @@ export default function HomePage() {
 							Ready to Build Your Second Brain?
 						</h2>
 						<p className='max-w-[42rem] leading-normal text-muted-foreground sm:text-lg sm:leading-7'>
-							Start organizing your knowledge today. Open source and self-hostable.
-							Bring your own OpenRouter API key.
+							Start organizing your knowledge today. Open source and
+							self-hostable. Bring your own OpenRouter API key.
 						</p>
 						<Link href='/login?signup=true'>
 							<Button size='lg' className='gap-2'>
