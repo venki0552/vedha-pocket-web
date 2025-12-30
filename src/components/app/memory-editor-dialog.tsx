@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import {
 	X,
 	Globe,
@@ -28,8 +27,8 @@ import {
 } from "@/components/ui/popover";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
-import { api } from "@/lib/api";
 import { TiptapEditor } from "@/components/app/tiptap-editor";
+import { useCreateMemory, useUpdateMemory, usePublishMemory } from "@/hooks/use-memories";
 
 interface Memory {
 	id: string;
@@ -94,8 +93,10 @@ export function MemoryEditorDialog({
 	orgId,
 	initialViewMode = "edit",
 }: MemoryEditorDialogProps) {
-	const router = useRouter();
 	const { toast } = useToast();
+	const createMutation = useCreateMemory();
+	const updateMutation = useUpdateMemory();
+	const publishMutation = usePublishMemory();
 	const [viewMode, setViewMode] = useState<"view" | "edit">(initialViewMode);
 	const [title, setTitle] = useState("");
 	const [content, setContent] = useState("");
@@ -132,7 +133,8 @@ export function MemoryEditorDialog({
 		setIsSaving(true);
 		try {
 			if (memory) {
-				await api.updateMemory(memory.id, {
+				await updateMutation.mutateAsync({
+					id: memory.id,
 					title: title || undefined,
 					content,
 					content_html: contentHtml,
@@ -140,7 +142,7 @@ export function MemoryEditorDialog({
 					tags,
 				});
 			} else {
-				await api.createMemory({
+				await createMutation.mutateAsync({
 					org_id: orgId,
 					title: title || undefined,
 					content,
@@ -158,7 +160,6 @@ export function MemoryEditorDialog({
 			});
 
 			onClose();
-			router.refresh();
 		} catch (error) {
 			toast({
 				title: "Error",
@@ -176,7 +177,7 @@ export function MemoryEditorDialog({
 			setIsPublishing(true);
 			try {
 				// Create memory first
-				const { data: newMemory } = await api.createMemory({
+				const newMemory = await createMutation.mutateAsync({
 					org_id: orgId,
 					title: title || undefined,
 					content,
@@ -186,7 +187,7 @@ export function MemoryEditorDialog({
 				});
 
 				// Then publish
-				await api.publishMemory(newMemory.id);
+				await publishMutation.mutateAsync(newMemory.id);
 
 				toast({
 					title: "Memory published",
@@ -194,7 +195,6 @@ export function MemoryEditorDialog({
 				});
 
 				onClose();
-				router.refresh();
 			} catch (error) {
 				toast({
 					title: "Error",
@@ -209,7 +209,8 @@ export function MemoryEditorDialog({
 			setIsPublishing(true);
 			try {
 				// Save changes
-				await api.updateMemory(memory.id, {
+				await updateMutation.mutateAsync({
+					id: memory.id,
 					title: title || undefined,
 					content,
 					content_html: contentHtml,
@@ -218,7 +219,7 @@ export function MemoryEditorDialog({
 				});
 
 				// Then publish
-				await api.publishMemory(memory.id);
+				await publishMutation.mutateAsync(memory.id);
 
 				toast({
 					title: "Memory published",
@@ -226,7 +227,6 @@ export function MemoryEditorDialog({
 				});
 
 				onClose();
-				router.refresh();
 			} catch (error) {
 				toast({
 					title: "Error",
