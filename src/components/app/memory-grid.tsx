@@ -191,16 +191,6 @@ export function MemoryGrid({
 			)}
 			onClick={() => onEdit(memory)}
 		>
-			{/* Status icons - top right */}
-			<div className='absolute top-3 right-10 flex items-center gap-1.5'>
-				{memory.is_pinned && (
-					<Pin className='h-4 w-4 text-muted-foreground fill-current' />
-				)}
-				{memory.status === "published" && (
-					<Globe className='h-4 w-4 text-primary' />
-				)}
-			</div>
-
 			{/* Content */}
 			<div
 				className={cn("flex-1 flex flex-col", viewMode === "list" && "min-w-0")}
@@ -251,7 +241,14 @@ export function MemoryGrid({
 						})}
 					</span>
 					<div className='flex items-center gap-1.5'>
-						{memory.status === "draft" && <FileEdit className='h-3.5 w-3.5' />}
+						{memory.is_pinned && (
+							<Pin className='h-3.5 w-3.5 fill-current' />
+						)}
+						{memory.status === "published" ? (
+							<Globe className='h-3.5 w-3.5 text-primary' />
+						) : (
+							<FileEdit className='h-3.5 w-3.5' />
+						)}
 					</div>
 				</div>
 			</div>
