@@ -16,6 +16,8 @@ import {
 	Zap,
 	CheckCircle2,
 	ArrowRight,
+	Github,
+	ExternalLink,
 } from "lucide-react";
 
 export default function HomePage() {
@@ -174,94 +176,91 @@ export default function HomePage() {
 					</div>
 				</section>
 
-				{/* Pricing Preview */}
+				{/* Open Source Section */}
 				<section className='container py-8 md:py-12 lg:py-24'>
 					<div className='mx-auto flex max-w-[58rem] flex-col items-center space-y-4 text-center'>
 						<h2 className='font-heading text-3xl leading-[1.1] sm:text-3xl md:text-6xl'>
-							Simple Pricing
+							100% Open Source
 						</h2>
 						<p className='max-w-[85%] leading-normal text-muted-foreground sm:text-lg sm:leading-7'>
-							Start free, scale as you grow.
+							Self-host it, customize it, make it yours. No subscriptions, no vendor lock-in.
 						</p>
 					</div>
 					<div className='mx-auto mt-8 grid max-w-[64rem] gap-8 md:grid-cols-3'>
 						<Card>
 							<CardHeader>
-								<CardTitle>Free</CardTitle>
-								<div className='text-3xl font-bold'>$0</div>
-								<CardDescription>For personal use</CardDescription>
+								<Github className='h-10 w-10 text-primary' />
+								<CardTitle className='mt-4'>Web App</CardTitle>
 							</CardHeader>
-							<CardContent className='space-y-2'>
-								<div className='flex items-center gap-2'>
-									<CheckCircle2 className='h-4 w-4 text-green-500' />
-									<span className='text-sm'>1 Pocket</span>
-								</div>
-								<div className='flex items-center gap-2'>
-									<CheckCircle2 className='h-4 w-4 text-green-500' />
-									<span className='text-sm'>50 Sources</span>
-								</div>
-								<div className='flex items-center gap-2'>
-									<CheckCircle2 className='h-4 w-4 text-green-500' />
-									<span className='text-sm'>100 Questions/month</span>
-								</div>
-							</CardContent>
-						</Card>
-						<Card className='border-primary'>
-							<CardHeader>
-								<CardTitle>Pro</CardTitle>
-								<div className='text-3xl font-bold'>$10</div>
-								<CardDescription>For power users</CardDescription>
-							</CardHeader>
-							<CardContent className='space-y-2'>
-								<div className='flex items-center gap-2'>
-									<CheckCircle2 className='h-4 w-4 text-green-500' />
-									<span className='text-sm'>10 Pockets</span>
-								</div>
-								<div className='flex items-center gap-2'>
-									<CheckCircle2 className='h-4 w-4 text-green-500' />
-									<span className='text-sm'>500 Sources</span>
-								</div>
-								<div className='flex items-center gap-2'>
-									<CheckCircle2 className='h-4 w-4 text-green-500' />
-									<span className='text-sm'>1,000 Questions/month</span>
-								</div>
-								<div className='flex items-center gap-2'>
-									<CheckCircle2 className='h-4 w-4 text-green-500' />
-									<span className='text-sm'>BYO API Key</span>
-								</div>
+							<CardContent>
+								<CardDescription>Next.js 14 frontend with shadcn/ui</CardDescription>
+								<a
+									href='https://github.com/venki0552/vedha-pocket-web'
+									target='_blank'
+									rel='noopener noreferrer'
+									className='mt-4 inline-flex items-center gap-1 text-sm text-primary hover:underline'
+								>
+									View on GitHub <ExternalLink className='h-3 w-3' />
+								</a>
 							</CardContent>
 						</Card>
 						<Card>
 							<CardHeader>
-								<CardTitle>Team</CardTitle>
-								<div className='text-3xl font-bold'>$25</div>
-								<CardDescription>Per seat/month</CardDescription>
+								<Github className='h-10 w-10 text-primary' />
+								<CardTitle className='mt-4'>API Server</CardTitle>
 							</CardHeader>
-							<CardContent className='space-y-2'>
-								<div className='flex items-center gap-2'>
-									<CheckCircle2 className='h-4 w-4 text-green-500' />
-									<span className='text-sm'>Unlimited Pockets</span>
-								</div>
-								<div className='flex items-center gap-2'>
-									<CheckCircle2 className='h-4 w-4 text-green-500' />
-									<span className='text-sm'>Unlimited Sources</span>
-								</div>
-								<div className='flex items-center gap-2'>
-									<CheckCircle2 className='h-4 w-4 text-green-500' />
-									<span className='text-sm'>Priority Support</span>
-								</div>
-								<div className='flex items-center gap-2'>
-									<CheckCircle2 className='h-4 w-4 text-green-500' />
-									<span className='text-sm'>Audit Logs</span>
-								</div>
+							<CardContent>
+								<CardDescription>Fastify API with RAG pipeline</CardDescription>
+								<a
+									href='https://github.com/venki0552/vedha-pocket-api'
+									target='_blank'
+									rel='noopener noreferrer'
+									className='mt-4 inline-flex items-center gap-1 text-sm text-primary hover:underline'
+								>
+									View on GitHub <ExternalLink className='h-3 w-3' />
+								</a>
+							</CardContent>
+						</Card>
+						<Card>
+							<CardHeader>
+								<Github className='h-10 w-10 text-primary' />
+								<CardTitle className='mt-4'>Worker</CardTitle>
+							</CardHeader>
+							<CardContent>
+								<CardDescription>Background processing with Playwright</CardDescription>
+								<a
+									href='https://github.com/venki0552/vedha-pocket-worker'
+									target='_blank'
+									rel='noopener noreferrer'
+									className='mt-4 inline-flex items-center gap-1 text-sm text-primary hover:underline'
+								>
+									View on GitHub <ExternalLink className='h-3 w-3' />
+								</a>
 							</CardContent>
 						</Card>
 					</div>
-					<div className='mt-8 text-center'>
-						<Link href='/pricing'>
-							<Button variant='outline'>View Full Pricing</Button>
-						</Link>
-					</div>
+					<Card className='mx-auto mt-8 max-w-[42rem] border-amber-500/50 bg-amber-50 dark:bg-amber-950/20'>
+						<CardHeader>
+							<CardTitle className='flex items-center gap-2 text-amber-700 dark:text-amber-400'>
+								<Zap className='h-5 w-5' />
+								Bring Your Own API Key
+							</CardTitle>
+						</CardHeader>
+						<CardContent className='text-sm text-muted-foreground'>
+							<p>
+								This demo uses <strong>OpenRouter</strong> for LLM and embeddings. To use the app,
+								you&apos;ll need to add your own API key in Settings after signing up.
+							</p>
+							<a
+								href='https://openrouter.ai/keys'
+								target='_blank'
+								rel='noopener noreferrer'
+								className='mt-2 inline-flex items-center gap-1 text-primary hover:underline'
+							>
+								Get your OpenRouter API key <ExternalLink className='h-3 w-3' />
+							</a>
+						</CardContent>
+					</Card>
 				</section>
 
 				{/* CTA Section */}
@@ -271,12 +270,12 @@ export default function HomePage() {
 							Ready to Build Your Second Brain?
 						</h2>
 						<p className='max-w-[42rem] leading-normal text-muted-foreground sm:text-lg sm:leading-7'>
-							Start organizing your knowledge today. Free to get started, no
-							credit card required.
+							Start organizing your knowledge today. Open source and self-hostable.
+							Bring your own OpenRouter API key.
 						</p>
 						<Link href='/login?signup=true'>
 							<Button size='lg' className='gap-2'>
-								Get Started Free <ArrowRight className='h-4 w-4' />
+								Get Started <ArrowRight className='h-4 w-4' />
 							</Button>
 						</Link>
 					</div>

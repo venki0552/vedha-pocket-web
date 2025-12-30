@@ -16,6 +16,7 @@ import {
 	Key,
 	Server,
 	FileCheck,
+	Github,
 } from "lucide-react";
 
 const securityFeatures = [
@@ -94,12 +95,15 @@ export default function SecurityPage() {
 					</div>
 					<div className='flex flex-1 items-center justify-between space-x-2 md:justify-end'>
 						<nav className='flex items-center space-x-6 text-sm font-medium'>
-							<Link
-								href='/pricing'
-								className='transition-colors hover:text-foreground/80'
+							<a
+								href='https://github.com/venki0552/vedha-pocket-web'
+								target='_blank'
+								rel='noopener noreferrer'
+								className='flex items-center gap-1 transition-colors hover:text-foreground/80'
 							>
-								Pricing
-							</Link>
+								<Github className='h-4 w-4' />
+								GitHub
+							</a>
 							<Link
 								href='/security'
 								className='text-foreground transition-colors'
