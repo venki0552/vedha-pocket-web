@@ -105,6 +105,17 @@ interface Message {
 	queries?: string[];
 	sources?: { source_id: string; title: string }[];
 	thinking?: string;
+	// Agentic RAG state
+	intent?: string;
+	rewrittenQuery?: string;
+	cragDecision?: string;
+	answerGrade?: {
+		isGrounded: boolean;
+		answersQuestion: boolean;
+		completeness: string;
+		overallScore: string;
+		issues: string[];
+	};
 }
 
 interface PocketViewProps {
@@ -290,6 +301,22 @@ export function PocketView({
 							switch (event.type) {
 								case "status":
 									return { ...msg, status: event.payload };
+								case "routing":
+									// Query intent classification result
+									return {
+										...msg,
+										intent: event.payload.intent,
+										status: `Intent: ${event.payload.intent} (${Math.round(
+											event.payload.confidence * 100
+										)}%)`,
+									};
+								case "rewriting":
+									// Context-aware query rewriting
+									return {
+										...msg,
+										rewrittenQuery: event.payload.rewritten,
+										status: `Rewritten: ${event.payload.rewritten}`,
+									};
 								case "queries":
 									return {
 										...msg,
@@ -302,6 +329,13 @@ export function PocketView({
 										sources: event.payload,
 										status: `Found ${event.payload.length} sources`,
 									};
+								case "grading":
+									// CRAG chunk relevance grading
+									return {
+										...msg,
+										cragDecision: event.payload.decision,
+										status: `${event.payload.relevantCount}/${event.payload.totalCount} chunks relevant (avg: ${event.payload.avgScore})`,
+									};
 								case "thinking":
 									return {
 										...msg,
@@ -313,11 +347,22 @@ export function PocketView({
 										content: msg.content + event.payload,
 										status: undefined,
 									};
+								case "reflection":
+									// Self-reflective answer grading
+									return {
+										...msg,
+										answerGrade: event.payload,
+										status: `Answer quality: ${Math.round(
+											event.payload.overallScore * 100
+										)}%`,
+									};
 								case "done":
 									return {
 										...msg,
 										content: event.payload.answer,
 										citations: event.payload.citations || [],
+										intent: event.payload.intent,
+										cragDecision: event.payload.crag_decision,
 										isStreaming: false,
 										status: undefined,
 									};
@@ -683,7 +728,10 @@ export function PocketView({
 																<p className='text-xs font-medium'>Sources:</p>
 																{Array.from(
 																	new Map(
-																		message.citations.map((c) => [c.sourceId || c.title, c])
+																		message.citations.map((c) => [
+																			c.sourceId || c.title,
+																			c,
+																		])
 																	).values()
 																).map((citation, i) => (
 																	<p key={i} className='text-xs opacity-80'>
