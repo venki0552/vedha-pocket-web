@@ -29,6 +29,9 @@ import {
 	X,
 	PanelLeftClose,
 	PanelLeft,
+	Github,
+	Chrome,
+	ExternalLink,
 } from "lucide-react";
 
 interface Org {
@@ -149,6 +152,45 @@ export function AppShell({ user, orgs, children }: AppShellProps) {
 								</Link>
 							);
 						})}
+
+						{/* External Links */}
+						<Separator className='my-2' />
+						<a
+							href='https://github.com/venki0552/vedha-pocket-extension'
+							target='_blank'
+							rel='noopener noreferrer'
+							className={cn(
+								"flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground text-muted-foreground",
+								!sidebarOpen && "justify-center"
+							)}
+							title={!sidebarOpen ? "Chrome Extension" : undefined}
+						>
+							<Chrome className='h-5 w-5 shrink-0' />
+							{sidebarOpen && (
+								<span className='flex items-center gap-1'>
+									Chrome Extension
+									<ExternalLink className='h-3 w-3' />
+								</span>
+							)}
+						</a>
+						<a
+							href='https://github.com/venki0552'
+							target='_blank'
+							rel='noopener noreferrer'
+							className={cn(
+								"flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground text-muted-foreground",
+								!sidebarOpen && "justify-center"
+							)}
+							title={!sidebarOpen ? "GitHub" : undefined}
+						>
+							<Github className='h-5 w-5 shrink-0' />
+							{sidebarOpen && (
+								<span className='flex items-center gap-1'>
+									GitHub
+									<ExternalLink className='h-3 w-3' />
+								</span>
+							)}
+						</a>
 					</nav>
 				</ScrollArea>
 
@@ -349,6 +391,34 @@ export function AppShell({ user, orgs, children }: AppShellProps) {
 											</Link>
 										);
 									})}
+
+									<Separator className='my-2' />
+
+									{/* External Links */}
+									<a
+										href='https://github.com/venki0552/vedha-pocket-extension'
+										target='_blank'
+										rel='noopener noreferrer'
+										className='flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition-colors hover:bg-accent text-muted-foreground'
+									>
+										<Chrome className='h-5 w-5' />
+										<span className='flex items-center gap-1'>
+											Chrome Extension
+											<ExternalLink className='h-3 w-3' />
+										</span>
+									</a>
+									<a
+										href='https://github.com/venki0552'
+										target='_blank'
+										rel='noopener noreferrer'
+										className='flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition-colors hover:bg-accent text-muted-foreground'
+									>
+										<Github className='h-5 w-5' />
+										<span className='flex items-center gap-1'>
+											GitHub
+											<ExternalLink className='h-3 w-3' />
+										</span>
+									</a>
 								</nav>
 							</div>
 						</ScrollArea>

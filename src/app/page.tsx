@@ -24,6 +24,10 @@ import {
 	FolderOpen,
 	Lock,
 	Key,
+	Github,
+	Chrome,
+	Download,
+	ExternalLink,
 } from "lucide-react";
 
 export default function HomePage() {
@@ -58,6 +62,15 @@ export default function HomePage() {
 							>
 								Security
 							</Link>
+							<a
+								href='https://github.com/venki0552'
+								target='_blank'
+								rel='noopener noreferrer'
+								className='transition-colors hover:text-foreground/80 flex items-center gap-1'
+							>
+								<Github className='h-4 w-4' />
+								GitHub
+							</a>
 						</nav>
 						<div className='flex items-center space-x-2'>
 							<Link href='/login'>
@@ -77,9 +90,20 @@ export default function HomePage() {
 					<div className='absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-purple-500/5' />
 					<div className='container relative py-20 md:py-32 lg:py-40'>
 						<div className='mx-auto flex max-w-[64rem] flex-col items-center gap-6 text-center'>
-							<div className='flex items-center gap-2 rounded-full border bg-muted/50 px-4 py-1.5 text-sm'>
-								<Sparkles className='h-4 w-4 text-primary' />
-								<span>AI-Powered Personal Knowledge Management</span>
+							<div className='flex flex-wrap items-center justify-center gap-2'>
+								<div className='flex items-center gap-2 rounded-full border bg-muted/50 px-4 py-1.5 text-sm'>
+									<Sparkles className='h-4 w-4 text-primary' />
+									<span>AI-Powered Personal Knowledge Management</span>
+								</div>
+								<a
+									href='https://github.com/venki0552'
+									target='_blank'
+									rel='noopener noreferrer'
+									className='flex items-center gap-2 rounded-full border border-green-500/50 bg-green-500/10 px-4 py-1.5 text-sm text-green-600 dark:text-green-400 hover:bg-green-500/20 transition-colors'
+								>
+									<Github className='h-4 w-4' />
+									<span>100% Open Source</span>
+								</a>
 							</div>
 							<h1 className='font-heading text-4xl font-bold sm:text-5xl md:text-6xl lg:text-7xl'>
 								Your Personal
@@ -461,6 +485,164 @@ export default function HomePage() {
 					</div>
 				</section>
 
+				{/* Chrome Extension Section */}
+				<section className='border-t bg-gradient-to-r from-blue-50/50 to-purple-50/50 dark:from-blue-950/20 dark:to-purple-950/20 py-16'>
+					<div className='container'>
+						<div className='mx-auto max-w-4xl text-center'>
+							<div className='flex justify-center mb-6'>
+								<div className='p-4 rounded-2xl bg-gradient-to-br from-primary/10 to-purple-500/10 border'>
+									<Chrome className='h-12 w-12 text-primary' />
+								</div>
+							</div>
+							<h2 className='font-heading text-3xl font-bold mb-4'>
+								Chrome Extension
+							</h2>
+							<p className='text-lg text-muted-foreground mb-8 max-w-2xl mx-auto'>
+								Save any webpage to your Memory Palace with one click. Chat with
+								your knowledge without leaving the page you&apos;re reading.
+							</p>
+							<div className='flex flex-col sm:flex-row gap-4 justify-center'>
+								<a
+									href='https://github.com/venki0552/vedha-pocket-extension'
+									target='_blank'
+									rel='noopener noreferrer'
+								>
+									<Button size='lg' className='gap-2'>
+										<Download className='h-5 w-5' />
+										Download Extension
+									</Button>
+								</a>
+								<a
+									href='https://github.com/venki0552/vedha-pocket-extension#installation'
+									target='_blank'
+									rel='noopener noreferrer'
+								>
+									<Button size='lg' variant='outline' className='gap-2'>
+										<ExternalLink className='h-5 w-5' />
+										Installation Guide
+									</Button>
+								</a>
+							</div>
+							<div className='mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl mx-auto'>
+								<div className='flex items-center gap-2 justify-center text-sm text-muted-foreground'>
+									<CheckSquare className='h-4 w-4 text-green-600' />
+									<span>Save pages instantly</span>
+								</div>
+								<div className='flex items-center gap-2 justify-center text-sm text-muted-foreground'>
+									<MessageSquare className='h-4 w-4 text-green-600' />
+									<span>Chat with your memories</span>
+								</div>
+								<div className='flex items-center gap-2 justify-center text-sm text-muted-foreground'>
+									<Shield className='h-4 w-4 text-green-600' />
+									<span>Secure & private</span>
+								</div>
+							</div>
+						</div>
+					</div>
+				</section>
+
+				{/* Open Source Section */}
+				<section className='border-t py-16'>
+					<div className='container'>
+						<div className='mx-auto max-w-4xl text-center'>
+							<div className='flex justify-center mb-6'>
+								<div className='p-4 rounded-2xl bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/20'>
+									<Github className='h-12 w-12 text-green-600' />
+								</div>
+							</div>
+							<h2 className='font-heading text-3xl font-bold mb-4'>
+								Fully Open Source
+							</h2>
+							<p className='text-lg text-muted-foreground mb-8 max-w-2xl mx-auto'>
+								Memory Palace is 100% open source. Audit the code, contribute,
+								or self-host your own instance. Built with transparency in mind.
+							</p>
+							<div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4'>
+								<a
+									href='https://github.com/venki0552/vedha-pocket-web'
+									target='_blank'
+									rel='noopener noreferrer'
+									className='group'
+								>
+									<Card className='h-full hover:border-primary/50 transition-colors'>
+										<CardContent className='p-4 flex items-center gap-3'>
+											<Globe className='h-5 w-5 text-primary shrink-0' />
+											<div className='text-left'>
+												<p className='font-medium text-sm group-hover:text-primary transition-colors'>
+													Web App
+												</p>
+												<p className='text-xs text-muted-foreground'>
+													Next.js Frontend
+												</p>
+											</div>
+										</CardContent>
+									</Card>
+								</a>
+								<a
+									href='https://github.com/venki0552/vedha-pocket-api'
+									target='_blank'
+									rel='noopener noreferrer'
+									className='group'
+								>
+									<Card className='h-full hover:border-primary/50 transition-colors'>
+										<CardContent className='p-4 flex items-center gap-3'>
+											<Zap className='h-5 w-5 text-primary shrink-0' />
+											<div className='text-left'>
+												<p className='font-medium text-sm group-hover:text-primary transition-colors'>
+													API Server
+												</p>
+												<p className='text-xs text-muted-foreground'>
+													Hono.js Backend
+												</p>
+											</div>
+										</CardContent>
+									</Card>
+								</a>
+								<a
+									href='https://github.com/venki0552/vedha-pocket-worker'
+									target='_blank'
+									rel='noopener noreferrer'
+									className='group'
+								>
+									<Card className='h-full hover:border-primary/50 transition-colors'>
+										<CardContent className='p-4 flex items-center gap-3'>
+											<Sparkles className='h-5 w-5 text-primary shrink-0' />
+											<div className='text-left'>
+												<p className='font-medium text-sm group-hover:text-primary transition-colors'>
+													Worker
+												</p>
+												<p className='text-xs text-muted-foreground'>
+													RAG Pipeline
+												</p>
+											</div>
+										</CardContent>
+									</Card>
+								</a>
+								<a
+									href='https://github.com/venki0552/vedha-pocket-extension'
+									target='_blank'
+									rel='noopener noreferrer'
+									className='group'
+								>
+									<Card className='h-full hover:border-primary/50 transition-colors'>
+										<CardContent className='p-4 flex items-center gap-3'>
+											<Chrome className='h-5 w-5 text-primary shrink-0' />
+											<div className='text-left'>
+												<p className='font-medium text-sm group-hover:text-primary transition-colors'>
+													Extension
+												</p>
+												<p className='text-xs text-muted-foreground'>
+													Chrome Browser
+												</p>
+											</div>
+										</CardContent>
+									</Card>
+								</a>
+							</div>
+						</div>
+					</div>
+				</section>
+
 				{/* CTA Section */}
 				<section className='border-t bg-gradient-to-br from-primary/5 via-background to-purple-500/5'>
 					<div className='container flex flex-col items-center gap-6 py-20 text-center md:py-32'>
@@ -488,7 +670,7 @@ export default function HomePage() {
 						<span className='font-semibold'>Memory Palace</span>
 						<span className='text-sm text-muted-foreground'>by Vedha LLC</span>
 					</div>
-					<div className='flex gap-6 text-sm text-muted-foreground'>
+					<div className='flex items-center gap-6 text-sm text-muted-foreground'>
 						<Link href='/privacy' className='hover:text-foreground'>
 							Privacy
 						</Link>
@@ -498,6 +680,15 @@ export default function HomePage() {
 						<Link href='/security' className='hover:text-foreground'>
 							Security
 						</Link>
+						<a
+							href='https://github.com/venki0552'
+							target='_blank'
+							rel='noopener noreferrer'
+							className='hover:text-foreground flex items-center gap-1'
+						>
+							<Github className='h-4 w-4' />
+							GitHub
+						</a>
 					</div>
 				</div>
 			</footer>
