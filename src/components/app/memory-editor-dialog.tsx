@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import DOMPurify from "isomorphic-dompurify";
 import {
 	X,
 	Globe,
@@ -268,7 +269,7 @@ export function MemoryEditorDialog({
 			<DialogContent
 				className={cn(
 					"sm:max-w-4xl max-h-[90vh] h-[90vh] overflow-hidden flex flex-col p-0",
-					colorClasses[color]
+					colorClasses[color],
 				)}
 			>
 				<DialogHeader className='flex flex-row items-start justify-between gap-4 px-6 py-4 border-b min-h-[64px]'>
@@ -340,7 +341,60 @@ export function MemoryEditorDialog({
 						<div
 							className='prose prose-sm dark:prose-invert max-w-none min-h-[200px] [&_ul[data-type=taskList]]:list-none [&_ul[data-type=taskList]]:pl-0 [&_ul[data-type=taskList]_li]:flex [&_ul[data-type=taskList]_li]:items-start [&_ul[data-type=taskList]_li]:gap-2 [&_ul[data-type=taskList]_li_label]:mt-0.5 [&_ul[data-type=taskList]_li>div]:flex-1 [&_ul[data-type=taskList]_li[data-checked=true]>div]:line-through [&_ul[data-type=taskList]_li[data-checked=true]>div]:opacity-60'
 							dangerouslySetInnerHTML={{
-								__html: memory.content_html || memory.content,
+								__html: DOMPurify.sanitize(
+									memory.content_html || memory.content,
+									{
+										ALLOWED_TAGS: [
+											"h1",
+											"h2",
+											"h3",
+											"h4",
+											"h5",
+											"h6",
+											"p",
+											"br",
+											"hr",
+											"ul",
+											"ol",
+											"li",
+											"blockquote",
+											"pre",
+											"code",
+											"strong",
+											"em",
+											"u",
+											"s",
+											"a",
+											"img",
+											"span",
+											"div",
+											"table",
+											"thead",
+											"tbody",
+											"tr",
+											"th",
+											"td",
+											"label",
+											"input",
+										],
+										ALLOWED_ATTR: [
+											"href",
+											"src",
+											"alt",
+											"title",
+											"class",
+											"id",
+											"data-type",
+											"data-checked",
+											"type",
+											"checked",
+											"disabled",
+											"target",
+											"rel",
+										],
+										ALLOW_DATA_ATTR: true,
+									},
+								),
 							}}
 						/>
 					</div>
@@ -439,7 +493,7 @@ export function MemoryEditorDialog({
 													c.class,
 													color === c.name
 														? "border-primary ring-2 ring-primary ring-offset-2"
-														: "border-transparent hover:border-muted-foreground"
+														: "border-transparent hover:border-muted-foreground",
 												)}
 												onClick={() => setColor(c.name)}
 											>
